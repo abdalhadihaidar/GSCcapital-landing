@@ -22,6 +22,7 @@ import { HeroSection } from '@/components/hero-section';
 import { HeroSectionDark } from '@/components/hero-section-dark';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import { useTheme } from 'next-themes';
+import { optimizeStatisticImage, optimizeServiceImage } from '@/lib/cloudinary';
 
 // Icon mapping
 const iconMap: { [key: string]: any } = {
@@ -298,9 +299,10 @@ export default function EnhancedHomePage() {
                       <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4 overflow-hidden">
                         {stat.imageUrl ? (
                           <img 
-                            src={stat.imageUrl} 
+                            src={optimizeStatisticImage(stat.imageUrl)} 
                             alt={stat.label}
                             className="w-full h-full object-cover"
+                            loading="lazy"
                           />
                         ) : (
                           <IconComponent className="w-6 h-6 text-white" />
@@ -398,7 +400,12 @@ export default function EnhancedHomePage() {
                         >
                           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                             {service.imageUrl ? (
-                              <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover" />
+                              <img 
+                                src={optimizeServiceImage(service.imageUrl)} 
+                                alt={service.title} 
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
                             ) : (
                               <IconComponent className="w-5 h-5 text-blue-600" />
                             )}
@@ -428,7 +435,12 @@ export default function EnhancedHomePage() {
                             >
                               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 {service.imageUrl ? (
-                                  <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover" />
+                                  <img 
+                                    src={optimizeServiceImage(service.imageUrl)} 
+                                    alt={service.title} 
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
                                 ) : (
                                   <IconComponent className="w-5 h-5 text-blue-600" />
                                 )}

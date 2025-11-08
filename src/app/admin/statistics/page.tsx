@@ -32,6 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { optimizePreviewImage } from '@/lib/cloudinary';
 
 interface Statistic {
   id: string;
@@ -278,7 +279,7 @@ export default function StatisticsManagement() {
                     <Label className="text-sm font-medium mb-2 block">Preview</Label>
                     <div className="relative w-32 h-32 border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
                       <img 
-                        src={formData.imageUrl} 
+                        src={optimizePreviewImage(formData.imageUrl)} 
                         alt="Preview" 
                         className="w-full h-full object-cover"
                         onError={(e) => {

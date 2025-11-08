@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
+import { optimizeCompanyImage } from '@/lib/cloudinary';
 
 interface EnhancedCardProps {
   title: string;
@@ -48,7 +49,12 @@ export function EnhancedCard({
       <CardHeader className="pb-4 relative z-10">
         <div className={`w-16 h-16 bg-gradient-to-r ${color} rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 overflow-hidden`}>
           {imageUrl ? (
-            <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+            <img 
+              src={optimizeCompanyImage(imageUrl)} 
+              alt={title} 
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
           ) : (
             icon
           )}
