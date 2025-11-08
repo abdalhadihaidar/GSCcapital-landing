@@ -1,7 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dtzghowyh';
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+// Only configure if API credentials are provided (for signed uploads)
+// For unsigned uploads, we only need the upload preset
+if (apiKey && apiSecret) {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  });
+} else {
+  // For unsigned uploads, we still need to set cloud_name
+  cloudinary.config({
+    cloud_name: cloudName,
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,35 +51,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
+    // Convert buffer to base64 string
+    const base64String = buffer.toString('base64');
+    const dataURI = `data:${file.type};base64,${base64String}`;
+
+    // Upload to Cloudinary
+    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET || process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'upload';
+    
+    let result;
+    if (apiKey && apiSecret) {
+      // Signed upload (with API credentials)
+      result = await cloudinary.uploader.upload(dataURI, {
+        upload_preset: uploadPreset,
+        folder: 'gsccapital',
+        resource_type: 'image',
+      });
+    } else {
+      // Unsigned upload (using upload preset only - no API secret needed)
+      result = await cloudinary.uploader.upload(dataURI, {
+        upload_preset: uploadPreset,
+        folder: 'gsccapital',
+        resource_type: 'image',
+        unsigned: true,
+      });
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
-    const extension = file.name.split('.').pop();
-    const filename = `${timestamp}-${randomString}.${extension}`;
-    const filepath = join(uploadsDir, filename);
-
-    // Save file
-    await writeFile(filepath, buffer);
-
-    // Return the URL path
-    const imageUrl = `/uploads/${filename}`;
+    // Return the secure URL
+    const imageUrl = result.secure_url;
 
     return NextResponse.json({ imageUrl });
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error('Error uploading file to Cloudinary:', error);
     return NextResponse.json(
       { error: 'Failed to upload file' },
       { status: 500 }
     );
   }
 }
-

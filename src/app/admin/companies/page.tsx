@@ -210,15 +210,8 @@ export default function CompaniesManagement() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Upload response:', data);
         const imageUrl = data.imageUrl;
-        console.log('Setting imageUrl to:', imageUrl);
-        setFormData(prev => {
-          console.log('Previous formData:', prev);
-          const updated = { ...prev, imageUrl };
-          console.log('Updated formData:', updated);
-          return updated;
-        });
+        setFormData(prev => ({ ...prev, imageUrl }));
         toast.success('Image uploaded successfully!');
       } else {
         const errorData = await response.json().catch(() => ({}));

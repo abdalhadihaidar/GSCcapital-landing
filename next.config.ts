@@ -8,14 +8,14 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
   serverExternalPackages: ['bcryptjs'],
   images: {
-    domains: ['localhost'],
-    // Add your production domain here
-    // remotePatterns: [
-    //   {
-    //     protocol: 'https',
-    //     hostname: 'yourdomain.com',
-    //   },
-    // ],
+    domains: ['localhost', 'res.cloudinary.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+    ],
   },
   webpack: (config, { dev }) => {
     if (dev) {
