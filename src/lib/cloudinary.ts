@@ -78,12 +78,12 @@ export function optimizeCloudinaryImage(
 }
 
 /**
- * Optimize image for company cards (64x64px)
+ * Optimize image for company cards (full width, ~300px height)
  */
 export function optimizeCompanyImage(imageUrl: string | undefined | null): string {
   return optimizeCloudinaryImage(imageUrl, {
-    width: 128, // 2x for retina
-    height: 128,
+    width: 600, // 2x for retina on larger cards
+    height: 400,
     crop: 'fill',
     quality: 'auto',
     format: 'auto',
