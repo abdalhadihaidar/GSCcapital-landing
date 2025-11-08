@@ -43,7 +43,7 @@ export function EnhancedCard({
             <img 
               src={optimizeCompanyImage(imageUrl)} 
               alt={title} 
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-110"
               loading="lazy"
               onError={(e) => {
                 // Hide broken image and show icon fallback

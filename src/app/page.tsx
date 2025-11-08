@@ -326,7 +326,7 @@ export default function EnhancedHomePage() {
 
         {/* Companies Section */}
         {companies.length > 0 && (
-          <section id="companies" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
+          <section id="companies" className={`py-12 lg:py-16 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
             <div className="container mx-auto">
               <div className="text-center max-w-3xl mx-auto mb-8 lg:mb-12">
                 <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -373,13 +373,13 @@ export default function EnhancedHomePage() {
 
         {/* Services Overview */}
         {services.length > 0 && (
-          <section id="services" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-white">
+          <section id="services" className={`py-12 lg:py-16 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
             <div className="container mx-auto">
               <div className="text-center max-w-3xl mx-auto mb-8 lg:mb-12">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+                <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   Comprehensive Services
                 </h2>
-                <p className="text-lg text-slate-600">
+                <p className={`text-lg ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                   From technology to real estate, we provide end-to-end solutions
                 </p>
               </div>
@@ -401,10 +401,10 @@ export default function EnhancedHomePage() {
                       return (
                         <div 
                           key={service.id} 
-                          className="flex items-start space-x-4 p-4 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                          className={`flex items-start space-x-4 p-4 rounded-lg transition-colors cursor-pointer ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}
                           onClick={() => scrollToSection('contact')}
                         >
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          <div className={`w-10 h-10 ${isDark ? 'bg-blue-900/30' : 'bg-blue-100'} rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden`}>
                             {service.imageUrl ? (
                               <img 
                                 src={optimizeServiceImage(service.imageUrl)} 
@@ -413,12 +413,12 @@ export default function EnhancedHomePage() {
                                 loading="lazy"
                               />
                             ) : (
-                              <IconComponent className="w-5 h-5 text-blue-600" />
+                              <IconComponent className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                             )}
                           </div>
                           <div>
-                            <h3 className="font-semibold text-slate-900 mb-2 hover:text-blue-600 transition-colors">{service.title}</h3>
-                            <p className="text-sm text-slate-600">{service.description}</p>
+                            <h3 className={`font-semibold mb-2 hover:text-blue-600 transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>{service.title}</h3>
+                            <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{service.description}</p>
                           </div>
                         </div>
                       );
@@ -436,10 +436,10 @@ export default function EnhancedHomePage() {
                           return (
                             <div 
                               key={service.id} 
-                              className="flex items-start space-x-4 p-4 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                              className={`flex items-start space-x-4 p-4 rounded-lg transition-colors cursor-pointer ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'}`}
                               onClick={() => scrollToSection('contact')}
                             >
-                              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                              <div className={`w-10 h-10 ${isDark ? 'bg-blue-900/30' : 'bg-blue-100'} rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden`}>
                                 {service.imageUrl ? (
                                   <img 
                                     src={optimizeServiceImage(service.imageUrl)} 
@@ -448,12 +448,12 @@ export default function EnhancedHomePage() {
                                     loading="lazy"
                                   />
                                 ) : (
-                                  <IconComponent className="w-5 h-5 text-blue-600" />
+                                  <IconComponent className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                                 )}
                               </div>
                               <div>
-                                <h3 className="font-semibold text-slate-900 mb-2 hover:text-blue-600 transition-colors">{service.title}</h3>
-                                <p className="text-sm text-slate-600">{service.description}</p>
+                                <h3 className={`font-semibold mb-2 hover:text-blue-600 transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>{service.title}</h3>
+                                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{service.description}</p>
                               </div>
                             </div>
                           );
@@ -468,34 +468,34 @@ export default function EnhancedHomePage() {
 
         {/* Testimonials / About */}
         {testimonials.length > 0 && (
-          <section id="about" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
+          <section id="about" className={`py-12 lg:py-16 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
             <div className="container mx-auto">
               <div className="text-center max-w-3xl mx-auto mb-8 lg:mb-12">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+                <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   Trusted by Industry Leaders
                 </h2>
-                <p className="text-lg text-slate-600">
+                <p className={`text-lg ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                   See what our clients say about working with GSC Capital Group
                 </p>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
                 {testimonials.map((testimonial) => (
-                  <Card key={testimonial.id} className="bg-white border-0 shadow-lg">
+                  <Card key={testimonial.id} className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-0'} shadow-lg`}>
                     <CardContent className="p-6">
                       <div className="flex mb-4">
                         {[...Array(testimonial.rating)].map((_, i) => (
                           <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                         ))}
                       </div>
-                      <p className="text-slate-600 mb-6 italic">"{testimonial.content}"</p>
+                      <p className={`${isDark ? 'text-slate-300' : 'text-slate-600'} mb-6 italic`}>"{testimonial.content}"</p>
                       <div className="flex items-center">
                         <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-4">
                           {testimonial.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-900">{testimonial.name}</div>
-                          <div className="text-sm text-slate-600">
+                          <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{testimonial.name}</div>
+                          <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                             {testimonial.role && `${testimonial.role}`}
                             {testimonial.role && testimonial.company && ', '}
                             {testimonial.company}
@@ -511,13 +511,13 @@ export default function EnhancedHomePage() {
         )}
 
         {/* Contact Section */}
-        <section id="contact" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <section id="contact" className={`py-12 lg:py-16 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
           <div className="container mx-auto max-w-4xl">
             <div className="text-center mb-8 lg:mb-12">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+              <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 Get in Touch
               </h2>
-              <p className="text-lg text-slate-600">
+              <p className={`text-lg ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                 Ready to transform your business? Let's discuss how we can help
               </p>
             </div>
@@ -525,20 +525,20 @@ export default function EnhancedHomePage() {
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Globe className="w-6 h-6 text-blue-600" />
+                  <div className={`w-12 h-12 ${isDark ? 'bg-blue-900/30' : 'bg-blue-100'} rounded-lg flex items-center justify-center`}>
+                    <Globe className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900">Global Presence</div>
-                    <div className="text-sm text-slate-600">New York · Dubai · Worldwide</div>
+                    <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Global Presence</div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>New York · Dubai · Worldwide</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Mail className="w-6 h-6 text-green-600" />
+                  <div className={`w-12 h-12 ${isDark ? 'bg-green-900/30' : 'bg-green-100'} rounded-lg flex items-center justify-center`}>
+                    <Mail className={`w-6 h-6 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900">Email</div>
+                    <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Email</div>
                     <a 
                       href="mailto:info@gsccapitalgroup.com" 
                       className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
@@ -548,14 +548,14 @@ export default function EnhancedHomePage() {
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Phone className="w-6 h-6 text-purple-600" />
+                  <div className={`w-12 h-12 ${isDark ? 'bg-purple-900/30' : 'bg-purple-100'} rounded-lg flex items-center justify-center`}>
+                    <Phone className={`w-6 h-6 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900">Phone</div>
+                    <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Phone</div>
                     <a 
                       href="tel:+15551234567" 
-                      className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                      className={`text-sm ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} hover:underline transition-colors`}
                     >
                       +1 (555) 123-4567
                     </a>
@@ -563,7 +563,7 @@ export default function EnhancedHomePage() {
                 </div>
               </div>
 
-              <Card className="border-0 shadow-lg">
+              <Card className={`${isDark ? 'bg-slate-700 border-slate-600' : 'border-0'} shadow-lg`}>
                 <CardContent className="p-6">
                   <form onSubmit={handleContactSubmit} className="space-y-4">
                     <Input 
