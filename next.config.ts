@@ -6,9 +6,7 @@ const nextConfig: NextConfig = {
   },
   // 禁用 Next.js 热重载，由 nodemon 处理重编译
   reactStrictMode: false,
-  experimental: {
-    serverComponentsExternalPackages: ['bcryptjs']
-  },
+  serverExternalPackages: ['bcryptjs'],
   images: {
     domains: ['localhost'],
     // Add your production domain here
