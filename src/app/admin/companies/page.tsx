@@ -210,7 +210,15 @@ export default function CompaniesManagement() {
 
       if (response.ok) {
         const data = await response.json();
-        setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
+        console.log('Upload response:', data);
+        const imageUrl = data.imageUrl;
+        console.log('Setting imageUrl to:', imageUrl);
+        setFormData(prev => {
+          console.log('Previous formData:', prev);
+          const updated = { ...prev, imageUrl };
+          console.log('Updated formData:', updated);
+          return updated;
+        });
         toast.success('Image uploaded successfully!');
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -377,11 +385,18 @@ export default function CompaniesManagement() {
                 />
                 {formData.imageUrl && (
                   <div className="mt-2">
-                    <img 
-                      src={formData.imageUrl} 
-                      alt="Preview" 
-                      className="w-32 h-32 object-cover rounded-lg border"
-                    />
+                    <Label className="text-sm font-medium mb-2 block">Preview</Label>
+                    <div className="relative w-32 h-32 border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+                      <img 
+                        src={formData.imageUrl} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('Image load error:', formData.imageUrl);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
