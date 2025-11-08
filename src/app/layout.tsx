@@ -21,7 +21,13 @@ export const metadata: Metadata = {
   keywords: ["GSC Capital Group", "Real Estate", "IT Solutions", "Consulting", "Investment", "Roomy Finder", "Business Strategy"],
   authors: [{ name: "GSC Capital Group" }],
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/logo.png", type: "image/png", sizes: "any" },
+    ],
+    apple: [
+      { url: "/logo.png", type: "image/png", sizes: "180x180" },
+    ],
+    shortcut: "/logo.png",
   },
   openGraph: {
     title: "GSC Capital Group",

@@ -18,7 +18,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { GSCLogo } from '@/components/gsc-logo';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import { useTheme } from 'next-themes';
 
@@ -66,8 +65,12 @@ export default function AdminLayout({
         <div className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-slate-800 shadow-xl">
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center space-x-3">
-              <GSCLogo size="sm" variant="gradient" />
-              <h2 className="text-lg font-semibold">Admin Panel</h2>
+              <img 
+                src="/logo.png" 
+                alt="GSC Capital Group Logo" 
+                className="h-8 w-8 object-contain"
+              />
+              <h2 className="text-lg font-semibold dark:text-slate-100">Admin Panel</h2>
             </div>
             <Button
               variant="ghost"
@@ -101,8 +104,12 @@ export default function AdminLayout({
       <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-64 lg:overflow-y-auto lg:bg-white dark:lg:bg-slate-800 lg:border-r dark:lg:border-slate-700">
         <div className="flex h-16 shrink-0 items-center px-6 border-b">
           <div className="flex items-center space-x-3">
-            <GSCLogo size="sm" variant="gradient" />
-            <h2 className="text-lg font-semibold">Admin Panel</h2>
+            <img 
+              src="/logo.png" 
+              alt="GSC Capital Group Logo" 
+              className="h-8 w-8 object-contain"
+            />
+            <h2 className="text-lg font-semibold dark:text-slate-100">Admin Panel</h2>
           </div>
         </div>
         <nav className="mt-6 px-4">

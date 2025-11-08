@@ -8,10 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { GSCLogo } from '@/components/gsc-logo';
-import { GSCFullLogo } from '@/components/gsc-full-logo';
-import { GSCLogoDark } from '@/components/gsc-logo-dark';
-import { GSCFullLogoDark } from '@/components/gsc-full-logo-dark';
+// Logo components removed - using logo.png from public folder
 import { AnimatedGradientBg } from '@/components/animated-gradient-bg';
 import { AnimatedGradientBgDark } from '@/components/animated-gradient-bg-dark';
 import { FloatingElements } from '@/components/floating-elements';
@@ -210,7 +207,11 @@ export default function EnhancedHomePage() {
           <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-2">
-                {isDark ? <GSCLogoDark size="md" variant="gradient" /> : <GSCLogo size="md" variant="gradient" />}
+                <img 
+                  src="/logo.png" 
+                  alt="GSC Capital Group Logo" 
+                  className="h-8 w-8 sm:h-10 sm:w-10 object-contain"
+                />
                 <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} hidden sm:block`}>GSC Capital Group</span>
                 <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'} sm:hidden`}>GSC</span>
               </div>
@@ -604,7 +605,11 @@ export default function EnhancedHomePage() {
             <div className="grid md:grid-cols-4 gap-8 mb-8">
               <div>
                 <div className="flex items-center space-x-2 mb-4">
-                  <GSCFullLogo size="md" variant="white" />
+                  <img 
+                    src="/logo.png" 
+                    alt="GSC Capital Group Logo" 
+                    className="h-8 w-8 object-contain"
+                  />
                 </div>
                 <p className="text-slate-400 text-sm">
                   Global Strategy Catalyst Group - Empowering business excellence worldwide.
