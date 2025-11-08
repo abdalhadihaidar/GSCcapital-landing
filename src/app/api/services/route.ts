@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
         description: data.description,
         category: data.category,
         icon: data.icon,
+        imageUrl: data.imageUrl,
         order: data.order || 0
       }
     });

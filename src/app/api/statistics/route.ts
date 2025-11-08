@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
         label: data.label,
         value: data.value,
         icon: data.icon,
+        imageUrl: data.imageUrl,
         order: data.order || 0
       }
     });

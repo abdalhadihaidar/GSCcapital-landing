@@ -42,6 +42,7 @@ model Company {
   slug        String   @unique
   description String
   icon        String?
+  imageUrl    String?
   color       String?
   isActive    Boolean  @default(true)
   order       Int      @default(0)
@@ -81,6 +82,7 @@ model Statistic {
   label       String
   value       String
   icon        String?
+  imageUrl    String?
   isActive    Boolean  @default(true)
   order       Int      @default(0)
   createdAt   DateTime @default(now())
@@ -108,6 +110,7 @@ model Service {
   description String
   category    String   // property, tech, business, finance, consulting
   icon        String?
+  imageUrl    String?
   isActive    Boolean  @default(true)
   order       Int      @default(0)
   createdAt   DateTime @default(now())

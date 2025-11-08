@@ -30,6 +30,7 @@ interface Company {
   slug: string;
   description: string;
   icon?: string;
+  imageUrl?: string;
   color?: string;
   isActive: boolean;
   order: number;
@@ -63,11 +64,13 @@ export default function CompaniesManagement() {
     slug: '',
     description: '',
     icon: 'Home',
+    imageUrl: '',
     color: 'from-blue-600 to-cyan-600',
     order: 0,
     features: [''],
     services: [{ title: '', description: '' }]
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchCompanies();
@@ -93,8 +96,13 @@ export default function CompaniesManagement() {
         services: formData.services.filter(s => s.title.trim())
       };
 
-      const response = await fetch('/api/companies', {
-        method: 'POST',
+      const url = editingCompany 
+        ? `/api/companies/${editingCompany.id}`
+        : '/api/companies';
+      const method = editingCompany ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
@@ -105,7 +113,69 @@ export default function CompaniesManagement() {
         resetForm();
       }
     } catch (error) {
-      console.error('Error creating company:', error);
+      console.error('Error saving company:', error);
+    }
+  };
+
+  const handleEdit = (company: Company) => {
+    setEditingCompany(company);
+    setFormData({
+      name: company.name,
+      slug: company.slug,
+      description: company.description,
+      icon: company.icon || 'Home',
+      imageUrl: company.imageUrl || '',
+      color: company.color || 'from-blue-600 to-cyan-600',
+      order: company.order,
+      features: company.features.map(f => f.title),
+      services: company.services.map(s => ({ title: s.title, description: s.description || '' }))
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this company?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/companies/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        fetchCompanies();
+      }
+    } catch (error) {
+      console.error('Error deleting company:', error);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
+      } else {
+        alert('Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -115,6 +185,7 @@ export default function CompaniesManagement() {
       slug: '',
       description: '',
       icon: 'Home',
+      imageUrl: '',
       color: 'from-blue-600 to-cyan-600',
       order: 0,
       features: [''],
@@ -220,6 +291,36 @@ export default function CompaniesManagement() {
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   required
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="image">Image (Optional - will override icon)</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                />
+                {formData.imageUrl && (
+                  <div className="mt-2">
+                    <img 
+                      src={formData.imageUrl} 
+                      alt="Preview" 
+                      className="w-32 h-32 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
+                      className="mt-2"
+                    >
+                      Remove Image
+                    </Button>
+                  </div>
+                )}
+                {uploadingImage && <p className="text-sm text-slate-500 mt-1">Uploading...</p>}
               </div>
 
               <div className="grid grid-cols-3 gap-4">
@@ -363,10 +464,18 @@ export default function CompaniesManagement() {
                   <Badge variant={company.isActive ? 'default' : 'secondary'}>
                     {company.isActive ? 'Active' : 'Inactive'}
                   </Badge>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEdit(company)}
+                  >
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDelete(company.id)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>

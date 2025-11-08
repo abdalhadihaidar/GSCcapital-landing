@@ -9,7 +9,8 @@ interface EnhancedCardDarkProps {
   title: string;
   description: string;
   features: string[];
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
+  imageUrl?: string;
   color: string;
   onLearnMore?: () => void;
   className?: string;
@@ -20,6 +21,7 @@ export function EnhancedCardDark({
   description, 
   features, 
   icon, 
+  imageUrl,
   color, 
   onLearnMore,
   className = '' 
@@ -43,8 +45,12 @@ export function EnhancedCardDark({
       />
       
       <CardHeader className="pb-4 relative z-10">
-        <div className={`w-16 h-16 bg-gradient-to-r ${color} rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-          {icon}
+        <div className={`w-16 h-16 bg-gradient-to-r ${color} rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 overflow-hidden`}>
+          {imageUrl ? (
+            <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+          ) : (
+            icon
+          )}
         </div>
         <CardTitle className="text-xl font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 transition-all duration-300">
           {title}

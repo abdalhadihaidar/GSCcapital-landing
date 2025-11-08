@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
         slug: data.slug,
         description: data.description,
         icon: data.icon,
+        imageUrl: data.imageUrl,
         color: data.color,
         order: data.order || 0,
         features: data.features ? {

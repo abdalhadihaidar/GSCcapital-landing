@@ -36,15 +36,39 @@ export default function MessagesManagement() {
 
   const toggleReadStatus = async (messageId: string, isRead: boolean) => {
     try {
-      // This would need an update endpoint in the API
-      // For now, we'll just update the local state
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === messageId ? { ...msg, isRead: !isRead } : msg
-        )
-      );
+      const response = await fetch(`/api/contact/${messageId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isRead: !isRead })
+      });
+
+      if (response.ok) {
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === messageId ? { ...msg, isRead: !isRead } : msg
+          )
+        );
+      }
     } catch (error) {
       console.error('Error updating message status:', error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this message?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/contact/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        fetchMessages();
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
     }
   };
 
@@ -132,7 +156,11 @@ export default function MessagesManagement() {
                     >
                       {message.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDelete(message.id)}
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>

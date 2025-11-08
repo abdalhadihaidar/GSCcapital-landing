@@ -27,6 +27,7 @@ interface Statistic {
   label: string;
   value: string;
   icon?: string;
+  imageUrl?: string;
   isActive: boolean;
   order: number;
 }
@@ -48,8 +49,10 @@ export default function StatisticsManagement() {
     label: '',
     value: '',
     icon: 'Building2',
+    imageUrl: '',
     order: 0
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchStatistics();
@@ -69,8 +72,13 @@ export default function StatisticsManagement() {
     e.preventDefault();
     
     try {
-      const response = await fetch('/api/statistics', {
-        method: 'POST',
+      const url = editingStatistic 
+        ? `/api/statistics/${editingStatistic.id}`
+        : '/api/statistics';
+      const method = editingStatistic ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
@@ -81,7 +89,65 @@ export default function StatisticsManagement() {
         resetForm();
       }
     } catch (error) {
-      console.error('Error creating statistic:', error);
+      console.error('Error saving statistic:', error);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
+      } else {
+        alert('Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleEdit = (statistic: Statistic) => {
+    setEditingStatistic(statistic);
+    setFormData({
+      label: statistic.label,
+      value: statistic.value,
+      icon: statistic.icon || 'Building2',
+      imageUrl: statistic.imageUrl || '',
+      order: statistic.order
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this statistic?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/statistics/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        fetchStatistics();
+      }
+    } catch (error) {
+      console.error('Error deleting statistic:', error);
     }
   };
 
@@ -90,6 +156,7 @@ export default function StatisticsManagement() {
       label: '',
       value: '',
       icon: 'Building2',
+      imageUrl: '',
       order: 0
     });
     setEditingStatistic(null);
@@ -137,6 +204,36 @@ export default function StatisticsManagement() {
                   onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
                   required
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="image">Image (Optional - will override icon)</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                />
+                {formData.imageUrl && (
+                  <div className="mt-2">
+                    <img 
+                      src={formData.imageUrl} 
+                      alt="Preview" 
+                      className="w-32 h-32 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
+                      className="mt-2"
+                    >
+                      Remove Image
+                    </Button>
+                  </div>
+                )}
+                {uploadingImage && <p className="text-sm text-slate-500 mt-1">Uploading...</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -194,10 +291,18 @@ export default function StatisticsManagement() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEdit(statistic)}
+                  >
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDelete(statistic.id)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>

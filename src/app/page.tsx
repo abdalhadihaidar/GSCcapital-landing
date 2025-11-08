@@ -48,6 +48,7 @@ interface Company {
   slug: string;
   description: string;
   icon?: string;
+  imageUrl?: string;
   color?: string;
   isActive: boolean;
   order: number;
@@ -60,6 +61,7 @@ interface Statistic {
   label: string;
   value: string;
   icon?: string;
+  imageUrl?: string;
   isActive: boolean;
   order: number;
 }
@@ -81,6 +83,7 @@ interface Service {
   description: string;
   category: string;
   icon?: string;
+  imageUrl?: string;
   isActive: boolean;
   order: number;
 }
@@ -254,8 +257,16 @@ export default function EnhancedHomePage() {
                   const IconComponent = getIconComponent(stat.icon);
                   return (
                     <div key={stat.id} className="text-center">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                        <IconComponent className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                        {stat.imageUrl ? (
+                          <img 
+                            src={stat.imageUrl} 
+                            alt={stat.label}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <IconComponent className="w-6 h-6 text-white" />
+                        )}
                       </div>
                       <div className={`text-2xl lg:text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</div>
                       <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{stat.label}</div>
@@ -290,7 +301,8 @@ export default function EnhancedHomePage() {
                         title={company.name}
                         description={company.description}
                         features={company.features.slice(0, 4).map(f => f.title)}
-                        icon={<IconComponent className="w-8 h-8 text-white" />}
+                        icon={!company.imageUrl ? <IconComponent className="w-8 h-8 text-white" /> : undefined}
+                        imageUrl={company.imageUrl}
                         color={company.color || 'from-blue-600 to-purple-600'}
                         onLearnMore={() => console.log(`Learn more about ${company.name}`)}
                       />
@@ -300,7 +312,8 @@ export default function EnhancedHomePage() {
                         title={company.name}
                         description={company.description}
                         features={company.features.slice(0, 4).map(f => f.title)}
-                        icon={<IconComponent className="w-8 h-8 text-white" />}
+                        icon={!company.imageUrl ? <IconComponent className="w-8 h-8 text-white" /> : undefined}
+                        imageUrl={company.imageUrl}
                         color={company.color || 'from-blue-600 to-purple-600'}
                         onLearnMore={() => console.log(`Learn more about ${company.name}`)}
                       />
@@ -341,8 +354,12 @@ export default function EnhancedHomePage() {
                       const IconComponent = getIconComponent(service.icon);
                       return (
                         <div key={service.id} className="flex items-start space-x-4">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <IconComponent className="w-5 h-5 text-blue-600" />
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {service.imageUrl ? (
+                              <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <IconComponent className="w-5 h-5 text-blue-600" />
+                            )}
                           </div>
                           <div>
                             <h3 className="font-semibold text-slate-900 mb-2">{service.title}</h3>
@@ -353,6 +370,33 @@ export default function EnhancedHomePage() {
                     })}
                   </div>
                 </TabsContent>
+
+                {['property', 'tech', 'business', 'finance', 'consulting'].map((category) => (
+                  <TabsContent key={category} value={category} className="mt-8">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {services
+                        .filter((service) => service.category === category)
+                        .map((service) => {
+                          const IconComponent = getIconComponent(service.icon);
+                          return (
+                            <div key={service.id} className="flex items-start space-x-4">
+                              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                {service.imageUrl ? (
+                                  <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover" />
+                                ) : (
+                                  <IconComponent className="w-5 h-5 text-blue-600" />
+                                )}
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-slate-900 mb-2">{service.title}</h3>
+                                <p className="text-sm text-slate-600">{service.description}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </TabsContent>
+                ))}
               </Tabs>
             </div>
           </section>

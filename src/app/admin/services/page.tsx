@@ -30,6 +30,7 @@ interface Service {
   description: string;
   category: string;
   icon?: string;
+  imageUrl?: string;
   isActive: boolean;
   order: number;
 }
@@ -60,8 +61,10 @@ export default function ServicesManagement() {
     description: '',
     category: 'property',
     icon: 'Search',
+    imageUrl: '',
     order: 0
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchServices();
@@ -81,8 +84,13 @@ export default function ServicesManagement() {
     e.preventDefault();
     
     try {
-      const response = await fetch('/api/services', {
-        method: 'POST',
+      const url = editingService 
+        ? `/api/services/${editingService.id}`
+        : '/api/services';
+      const method = editingService ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
@@ -93,7 +101,66 @@ export default function ServicesManagement() {
         resetForm();
       }
     } catch (error) {
-      console.error('Error creating service:', error);
+      console.error('Error saving service:', error);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
+      } else {
+        alert('Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleEdit = (service: Service) => {
+    setEditingService(service);
+    setFormData({
+      title: service.title,
+      description: service.description,
+      category: service.category,
+      icon: service.icon || 'Search',
+      imageUrl: service.imageUrl || '',
+      order: service.order
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this service?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/services/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        fetchServices();
+      }
+    } catch (error) {
+      console.error('Error deleting service:', error);
     }
   };
 
@@ -103,6 +170,7 @@ export default function ServicesManagement() {
       description: '',
       category: 'property',
       icon: 'Search',
+      imageUrl: '',
       order: 0
     });
     setEditingService(null);
@@ -161,6 +229,36 @@ export default function ServicesManagement() {
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   required
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="image">Image (Optional - will override icon)</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                />
+                {formData.imageUrl && (
+                  <div className="mt-2">
+                    <img 
+                      src={formData.imageUrl} 
+                      alt="Preview" 
+                      className="w-32 h-32 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
+                      className="mt-2"
+                    >
+                      Remove Image
+                    </Button>
+                  </div>
+                )}
+                {uploadingImage && <p className="text-sm text-slate-500 mt-1">Uploading...</p>}
               </div>
 
               <div className="grid grid-cols-3 gap-4">
@@ -238,10 +336,18 @@ export default function ServicesManagement() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEdit(service)}
+                  >
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDelete(service.id)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>

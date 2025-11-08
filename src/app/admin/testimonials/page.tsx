@@ -58,8 +58,13 @@ export default function TestimonialsManagement() {
     e.preventDefault();
     
     try {
-      const response = await fetch('/api/testimonials', {
-        method: 'POST',
+      const url = editingTestimonial 
+        ? `/api/testimonials/${editingTestimonial.id}`
+        : '/api/testimonials';
+      const method = editingTestimonial ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
@@ -70,7 +75,38 @@ export default function TestimonialsManagement() {
         resetForm();
       }
     } catch (error) {
-      console.error('Error creating testimonial:', error);
+      console.error('Error saving testimonial:', error);
+    }
+  };
+
+  const handleEdit = (testimonial: Testimonial) => {
+    setEditingTestimonial(testimonial);
+    setFormData({
+      name: testimonial.name,
+      company: testimonial.company || '',
+      role: testimonial.role || '',
+      content: testimonial.content,
+      rating: testimonial.rating,
+      order: testimonial.order
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this testimonial?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/testimonials/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        fetchTestimonials();
+      }
+    } catch (error) {
+      console.error('Error deleting testimonial:', error);
     }
   };
 
@@ -217,10 +253,18 @@ export default function TestimonialsManagement() {
                   <div className="flex">
                     {renderStars(testimonial.rating)}
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEdit(testimonial)}
+                  >
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDelete(testimonial.id)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
