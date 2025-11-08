@@ -68,7 +68,7 @@ export default function AdminLayout({
               <img 
                 src="/logo.png" 
                 alt="GSC Capital Group Logo" 
-                className="h-8 w-8 object-contain"
+                className="h-12 w-12 object-contain"
               />
               <h2 className="text-lg font-semibold dark:text-slate-100">Admin Panel</h2>
             </div>
@@ -107,7 +107,7 @@ export default function AdminLayout({
             <img 
               src="/logo.png" 
               alt="GSC Capital Group Logo" 
-              className="h-8 w-8 object-contain"
+              className="h-12 w-12 object-contain"
             />
             <h2 className="text-lg font-semibold dark:text-slate-100">Admin Panel</h2>
           </div>

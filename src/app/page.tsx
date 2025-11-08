@@ -206,14 +206,14 @@ export default function EnhancedHomePage() {
         <header className={`fixed top-0 w-full ${isDark ? 'bg-slate-800/95 border-slate-700' : 'bg-white/95 border-slate-200'} backdrop-blur-sm border-b z-50`}>
           <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <img 
                   src="/logo.png" 
                   alt="GSC Capital Group Logo" 
-                  className="h-8 w-8 sm:h-10 sm:w-10 object-contain"
+                  className="h-12 w-12 sm:h-14 sm:w-14 object-contain"
                 />
-                <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} hidden sm:block`}>GSC Capital Group</span>
-                <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'} sm:hidden`}>GSC</span>
+                <span className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} hidden sm:block`}>GSC Capital Group</span>
+                <span className={`text-lg sm:text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} sm:hidden`}>GSC</span>
               </div>
 
               {/* Desktop Navigation */}
@@ -608,7 +608,7 @@ export default function EnhancedHomePage() {
                   <img 
                     src="/logo.png" 
                     alt="GSC Capital Group Logo" 
-                    className="h-8 w-8 object-contain"
+                    className="h-12 w-12 object-contain"
                   />
                 </div>
                 <p className="text-slate-400 text-sm">
