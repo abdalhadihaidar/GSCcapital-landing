@@ -3,7 +3,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Building2, TrendingUp, Globe } from 'lucide-react';
-import { GSCFullLogoDark } from './gsc-full-logo-dark';
 import { useState } from 'react';
 
 interface HeroSectionDarkProps {
@@ -54,8 +53,16 @@ export function HeroSectionDark({ locale }: HeroSectionDarkProps) {
       <div className="container mx-auto relative z-10">
         <div className="text-center max-w-4xl mx-auto">
           {/* Logo with animation */}
-          <div className="mb-8 transform transition-all duration-500 hover:scale-105">
-            <GSCFullLogoDark size="xl" variant="white" className="mx-auto" />
+          <div className="mb-8 transform transition-all duration-500 hover:scale-105 flex justify-center">
+            <div className="relative drop-shadow-[0_0_20px_rgba(147,51,234,0.6)] drop-shadow-[0_0_40px_rgba(59,130,246,0.4)]">
+              <img 
+                src="/logo.png" 
+                alt="GSC Capital Group Logo" 
+                className="h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28 object-contain filter brightness-110 contrast-110"
+              />
+              <div className="absolute inset-0 rounded-lg border-2 border-purple-500/40 blur-md -z-10 animate-pulse" />
+              <div className="absolute inset-0 rounded-lg border border-blue-400/30 blur-sm -z-10" />
+            </div>
           </div>
 
           {/* Badge with animation */}

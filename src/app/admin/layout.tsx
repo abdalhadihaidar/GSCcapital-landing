@@ -65,11 +65,14 @@ export default function AdminLayout({
         <div className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-slate-800 shadow-xl">
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center space-x-3">
-              <img 
-                src="/logo.png" 
-                alt="GSC Capital Group Logo" 
-                className="h-12 w-12 object-contain"
-              />
+              <div className="relative dark:drop-shadow-[0_0_15px_rgba(147,51,234,0.5)] dark:drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+                <img 
+                  src="/logo.png" 
+                  alt="GSC Capital Group Logo" 
+                  className="h-12 w-12 object-contain dark:filter dark:brightness-110 dark:contrast-110"
+                />
+                <div className="absolute inset-0 rounded-lg border-2 border-purple-500/30 blur-sm -z-10 dark:block hidden" />
+              </div>
               <h2 className="text-lg font-semibold dark:text-slate-100">Admin Panel</h2>
             </div>
             <Button
@@ -104,11 +107,14 @@ export default function AdminLayout({
       <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-64 lg:overflow-y-auto lg:bg-white dark:lg:bg-slate-800 lg:border-r dark:lg:border-slate-700">
         <div className="flex h-16 shrink-0 items-center px-6 border-b">
           <div className="flex items-center space-x-3">
-            <img 
-              src="/logo.png" 
-              alt="GSC Capital Group Logo" 
-              className="h-12 w-12 object-contain"
-            />
+            <div className="relative dark:drop-shadow-[0_0_15px_rgba(147,51,234,0.5)] dark:drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+              <img 
+                src="/logo.png" 
+                alt="GSC Capital Group Logo" 
+                className="h-12 w-12 object-contain dark:filter dark:brightness-110 dark:contrast-110"
+              />
+              <div className="absolute inset-0 rounded-lg border-2 border-purple-500/30 blur-sm -z-10 dark:block hidden" />
+            </div>
             <h2 className="text-lg font-semibold dark:text-slate-100">Admin Panel</h2>
           </div>
         </div>

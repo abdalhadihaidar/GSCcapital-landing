@@ -36,7 +36,7 @@ export function EnhancedCardDark({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Section - Upper Half */}
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-48 overflow-hidden bg-slate-900">
         {imageUrl ? (
           <>
             <img 
@@ -44,8 +44,25 @@ export function EnhancedCardDark({
               alt={title} 
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               loading="lazy"
+              onError={(e) => {
+                // Hide broken image and show icon fallback
+                e.currentTarget.style.display = 'none';
+                const parent = e.currentTarget.parentElement;
+                if (parent) {
+                  const fallback = parent.querySelector('.image-fallback') as HTMLElement;
+                  if (fallback) {
+                    fallback.style.display = 'flex';
+                  }
+                }
+              }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-800 via-slate-800/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="image-fallback hidden absolute inset-0 w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 items-center justify-center">
+              <div className="text-white/80 group-hover:scale-110 transition-transform duration-300">
+                {icon}
+              </div>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-800 via-slate-800/30 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-800 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
           </>
         ) : (
           <div className={`w-full h-full bg-gradient-to-br ${color} flex items-center justify-center`}>
@@ -54,8 +71,6 @@ export function EnhancedCardDark({
             </div>
           </div>
         )}
-        {/* Overlay gradient */}
-        <div className={`absolute inset-0 bg-gradient-to-t from-slate-800 via-transparent to-transparent`} />
       </div>
       
       {/* Content Section - Lower Half */}

@@ -3,7 +3,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Building2, TrendingUp, Globe } from 'lucide-react';
-import { GSCFullLogo } from './gsc-full-logo';
 import { useState } from 'react';
 
 interface HeroSectionProps {
@@ -54,8 +53,12 @@ export function HeroSection({ locale }: HeroSectionProps) {
       <div className="container mx-auto relative z-10">
         <div className="text-center max-w-4xl mx-auto">
           {/* Logo with animation */}
-          <div className="mb-8 transform transition-all duration-500 hover:scale-105">
-            <GSCFullLogo size="xl" variant="gradient" className="mx-auto" />
+          <div className="mb-8 transform transition-all duration-500 hover:scale-105 flex justify-center">
+            <img 
+              src="/logo.png" 
+              alt="GSC Capital Group Logo" 
+              className="h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28 object-contain"
+            />
           </div>
 
           {/* Badge with animation */}
