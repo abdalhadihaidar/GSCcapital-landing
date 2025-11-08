@@ -108,6 +108,23 @@ export default function EnhancedHomePage() {
 
   useEffect(() => {
     fetchData();
+    
+    // Handle scroll to update active section
+    const handleScroll = () => {
+      const sections = ['home', 'companies', 'services', 'about', 'contact'];
+      const scrollPosition = window.scrollY + 100;
+      
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = document.getElementById(sections[i]);
+        if (section && section.offsetTop <= scrollPosition) {
+          setActiveSection(sections[i]);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const fetchData = async () => {
@@ -160,6 +177,16 @@ export default function EnhancedHomePage() {
     return iconMap[iconName || 'Home'] || Home;
   };
 
+  const scrollToSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (sectionId === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -192,7 +219,7 @@ export default function EnhancedHomePage() {
                 {['Home', 'Companies', 'Services', 'About', 'Contact'].map((item) => (
                   <button
                     key={item}
-                    onClick={() => setActiveSection(item.toLowerCase())}
+                    onClick={() => scrollToSection(item.toLowerCase())}
                     className={`text-sm font-medium transition-colors hover:text-blue-600 ${
                       activeSection === item.toLowerCase() ? 'text-blue-600' : isDark ? 'text-slate-300' : 'text-slate-600'
                     }`}
@@ -201,7 +228,10 @@ export default function EnhancedHomePage() {
                   </button>
                 ))}
                 <DarkModeToggle />
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-sm px-4 py-2">
+                <Button 
+                  onClick={() => scrollToSection('contact')}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-sm px-4 py-2"
+                >
                   Get Started
                 </Button>
               </div>
@@ -222,11 +252,11 @@ export default function EnhancedHomePage() {
                   <button
                     key={item}
                     onClick={() => {
-                      setActiveSection(item.toLowerCase());
+                      scrollToSection(item.toLowerCase());
                       setIsMenuOpen(false);
                     }}
                     className={`block w-full text-left py-2 px-4 text-sm font-medium transition-colors ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'} ${
-                      activeSection === item.toLowerCase() ? 'text-blue-600 bg-slate-50' : isDark ? 'text-slate-300' : 'text-slate-600'
+                      activeSection === item.toLowerCase() ? 'text-blue-600 bg-slate-50 dark:bg-slate-700' : isDark ? 'text-slate-300' : 'text-slate-600'
                     }`}
                   >
                     {item}
@@ -236,7 +266,13 @@ export default function EnhancedHomePage() {
                   <DarkModeToggle />
                 </div>
                 <div className="px-4 py-2">
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Button 
+                    onClick={() => {
+                      scrollToSection('contact');
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
                     Get Started
                   </Button>
                 </div>
@@ -246,7 +282,9 @@ export default function EnhancedHomePage() {
         </header>
 
         {/* Hero Section */}
-        {isDark ? <HeroSectionDark locale="en" /> : <HeroSection locale="en" />}
+        <div id="home">
+          {isDark ? <HeroSectionDark locale="en" /> : <HeroSection locale="en" />}
+        </div>
 
         {/* Stats Section */}
         {statistics.length > 0 && (
@@ -280,7 +318,7 @@ export default function EnhancedHomePage() {
 
         {/* Companies Section */}
         {companies.length > 0 && (
-          <section className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
+          <section id="companies" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
             <div className="container mx-auto">
               <div className="text-center max-w-3xl mx-auto mb-8 lg:mb-12">
                 <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -304,7 +342,7 @@ export default function EnhancedHomePage() {
                         icon={!company.imageUrl ? <IconComponent className="w-8 h-8 text-white" /> : undefined}
                         imageUrl={company.imageUrl}
                         color={company.color || 'from-blue-600 to-purple-600'}
-                        onLearnMore={() => console.log(`Learn more about ${company.name}`)}
+                        onLearnMore={() => scrollToSection('contact')}
                       />
                     ) : (
                       <EnhancedCard
@@ -315,7 +353,7 @@ export default function EnhancedHomePage() {
                         icon={!company.imageUrl ? <IconComponent className="w-8 h-8 text-white" /> : undefined}
                         imageUrl={company.imageUrl}
                         color={company.color || 'from-blue-600 to-purple-600'}
-                        onLearnMore={() => console.log(`Learn more about ${company.name}`)}
+                        onLearnMore={() => scrollToSection('contact')}
                       />
                     )
                   );
@@ -327,7 +365,7 @@ export default function EnhancedHomePage() {
 
         {/* Services Overview */}
         {services.length > 0 && (
-          <section className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-white">
+          <section id="services" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-white">
             <div className="container mx-auto">
               <div className="text-center max-w-3xl mx-auto mb-8 lg:mb-12">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
@@ -353,7 +391,11 @@ export default function EnhancedHomePage() {
                     {services.map((service) => {
                       const IconComponent = getIconComponent(service.icon);
                       return (
-                        <div key={service.id} className="flex items-start space-x-4">
+                        <div 
+                          key={service.id} 
+                          className="flex items-start space-x-4 p-4 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                          onClick={() => scrollToSection('contact')}
+                        >
                           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                             {service.imageUrl ? (
                               <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover" />
@@ -362,7 +404,7 @@ export default function EnhancedHomePage() {
                             )}
                           </div>
                           <div>
-                            <h3 className="font-semibold text-slate-900 mb-2">{service.title}</h3>
+                            <h3 className="font-semibold text-slate-900 mb-2 hover:text-blue-600 transition-colors">{service.title}</h3>
                             <p className="text-sm text-slate-600">{service.description}</p>
                           </div>
                         </div>
@@ -379,7 +421,11 @@ export default function EnhancedHomePage() {
                         .map((service) => {
                           const IconComponent = getIconComponent(service.icon);
                           return (
-                            <div key={service.id} className="flex items-start space-x-4">
+                            <div 
+                              key={service.id} 
+                              className="flex items-start space-x-4 p-4 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                              onClick={() => scrollToSection('contact')}
+                            >
                               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 {service.imageUrl ? (
                                   <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover" />
@@ -388,7 +434,7 @@ export default function EnhancedHomePage() {
                                 )}
                               </div>
                               <div>
-                                <h3 className="font-semibold text-slate-900 mb-2">{service.title}</h3>
+                                <h3 className="font-semibold text-slate-900 mb-2 hover:text-blue-600 transition-colors">{service.title}</h3>
                                 <p className="text-sm text-slate-600">{service.description}</p>
                               </div>
                             </div>
@@ -402,9 +448,9 @@ export default function EnhancedHomePage() {
           </section>
         )}
 
-        {/* Testimonials */}
+        {/* Testimonials / About */}
         {testimonials.length > 0 && (
-          <section className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
+          <section id="about" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
             <div className="container mx-auto">
               <div className="text-center max-w-3xl mx-auto mb-8 lg:mb-12">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
@@ -447,7 +493,7 @@ export default function EnhancedHomePage() {
         )}
 
         {/* Contact Section */}
-        <section className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <section id="contact" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="container mx-auto max-w-4xl">
             <div className="text-center mb-8 lg:mb-12">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
@@ -475,7 +521,12 @@ export default function EnhancedHomePage() {
                   </div>
                   <div>
                     <div className="font-semibold text-slate-900">Email</div>
-                    <div className="text-sm text-slate-600">info@gsccapitalgroup.com</div>
+                    <a 
+                      href="mailto:info@gsccapitalgroup.com" 
+                      className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                    >
+                      info@gsccapitalgroup.com
+                    </a>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -484,7 +535,12 @@ export default function EnhancedHomePage() {
                   </div>
                   <div>
                     <div className="font-semibold text-slate-900">Phone</div>
-                    <div className="text-sm text-slate-600">+1 (555) 123-4567</div>
+                    <a 
+                      href="tel:+15551234567" 
+                      className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                    >
+                      +1 (555) 123-4567
+                    </a>
                   </div>
                 </div>
               </div>
@@ -548,7 +604,12 @@ export default function EnhancedHomePage() {
                 <ul className="space-y-2 text-sm text-slate-400">
                   {companies.map((company) => (
                     <li key={company.id}>
-                      <a href="#" className="hover:text-white transition-colors">{company.name}</a>
+                      <button 
+                        onClick={() => scrollToSection('companies')}
+                        className="hover:text-white transition-colors text-left"
+                      >
+                        {company.name}
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -557,21 +618,77 @@ export default function EnhancedHomePage() {
               <div>
                 <h4 className="font-semibold mb-4">Services</h4>
                 <ul className="space-y-2 text-sm text-slate-400">
-                  <li><a href="#" className="hover:text-white transition-colors">Property Management</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">IT Consulting</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Business Strategy</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Investment Advisory</a></li>
+                  <li>
+                    <button 
+                      onClick={() => scrollToSection('services')}
+                      className="hover:text-white transition-colors text-left"
+                    >
+                      Property Management
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => scrollToSection('services')}
+                      className="hover:text-white transition-colors text-left"
+                    >
+                      IT Consulting
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => scrollToSection('services')}
+                      className="hover:text-white transition-colors text-left"
+                    >
+                      Business Strategy
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => scrollToSection('services')}
+                      className="hover:text-white transition-colors text-left"
+                    >
+                      Investment Advisory
+                    </button>
+                  </li>
                 </ul>
               </div>
               
               <div>
                 <h4 className="font-semibold mb-4">Connect</h4>
                 <ul className="space-y-2 text-sm text-slate-400">
-                  <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                  <li>
+                    <button 
+                      onClick={() => scrollToSection('about')}
+                      className="hover:text-white transition-colors text-left"
+                    >
+                      About Us
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => scrollToSection('contact')}
+                      className="hover:text-white transition-colors text-left"
+                    >
+                      Careers
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => scrollToSection('contact')}
+                      className="hover:text-white transition-colors text-left"
+                    >
+                      Contact
+                    </button>
+                  </li>
                   <li><a href="/admin/auth" className="hover:text-white transition-colors">Admin</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                  <li>
+                    <button 
+                      onClick={() => scrollToSection('contact')}
+                      className="hover:text-white transition-colors text-left"
+                    >
+                      Privacy Policy
+                    </button>
+                  </li>
                 </ul>
               </div>
             </div>

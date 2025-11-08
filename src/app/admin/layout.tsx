@@ -19,6 +19,8 @@ import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { GSCLogo } from '@/components/gsc-logo';
+import { DarkModeToggle } from '@/components/dark-mode-toggle';
+import { useTheme } from 'next-themes';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -37,6 +39,7 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('adminAuthenticated');
@@ -56,11 +59,11 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed left-0 top-0 h-full w-64 bg-white shadow-xl">
+        <div className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-slate-800 shadow-xl">
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center space-x-3">
               <GSCLogo size="sm" variant="gradient" />
@@ -95,7 +98,7 @@ export default function AdminLayout({
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-64 lg:overflow-y-auto lg:bg-white lg:border-r">
+      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-64 lg:overflow-y-auto lg:bg-white dark:lg:bg-slate-800 lg:border-r dark:lg:border-slate-700">
         <div className="flex h-16 shrink-0 items-center px-6 border-b">
           <div className="flex items-center space-x-3">
             <GSCLogo size="sm" variant="gradient" />
@@ -109,8 +112,8 @@ export default function AdminLayout({
               href={item.href}
               className={`flex items-center space-x-3 px-3 py-2 rounded-lg mb-1 transition-colors ${
                 pathname === item.href
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-slate-600 hover:bg-slate-50'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
             >
               <item.icon className="w-5 h-5" />
@@ -123,7 +126,7 @@ export default function AdminLayout({
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-white dark:bg-slate-800 dark:border-slate-700 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <Button
             variant="ghost"
             size="sm"
@@ -135,11 +138,12 @@ export default function AdminLayout({
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">
-              <h1 className="text-xl font-semibold text-slate-900">
+              <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 GSC Capital Group Admin
               </h1>
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
+              <DarkModeToggle />
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="w-4 h-4" />
               </Button>

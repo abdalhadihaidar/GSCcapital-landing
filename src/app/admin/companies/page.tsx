@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Building2, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Building2, Plus, Edit, Trash2, Eye, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Company {
   id: string;
@@ -59,6 +70,10 @@ export default function CompaniesManagement() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -71,6 +86,7 @@ export default function CompaniesManagement() {
     services: [{ title: '', description: '' }]
   });
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCompanies();
@@ -78,17 +94,25 @@ export default function CompaniesManagement() {
 
   const fetchCompanies = async () => {
     try {
+      setLoading(true);
       const response = await fetch('/api/companies');
+      if (!response.ok) {
+        throw new Error('Failed to fetch companies');
+      }
       const data = await response.json();
       setCompanies(data);
     } catch (error) {
       console.error('Error fetching companies:', error);
+      toast.error('Failed to load companies. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    setIsLoading(true);
     try {
       const payload = {
         ...formData,
@@ -108,12 +132,19 @@ export default function CompaniesManagement() {
       });
 
       if (response.ok) {
-        fetchCompanies();
+        toast.success(editingCompany ? 'Company updated successfully!' : 'Company created successfully!');
+        await fetchCompanies();
         setIsDialogOpen(false);
         resetForm();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save company');
       }
     } catch (error) {
       console.error('Error saving company:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save company. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -133,21 +164,33 @@ export default function CompaniesManagement() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this company?')) {
-      return;
-    }
+  const handleDeleteClick = (id: string) => {
+    setCompanyToDelete(id);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!companyToDelete) return;
+
+    setIsDeleting(companyToDelete);
     try {
-      const response = await fetch(`/api/companies/${id}`, {
+      const response = await fetch(`/api/companies/${companyToDelete}`, {
         method: 'DELETE'
       });
 
       if (response.ok) {
-        fetchCompanies();
+        toast.success('Company deleted successfully!');
+        await fetchCompanies();
+        setDeleteDialogOpen(false);
+        setCompanyToDelete(null);
+      } else {
+        throw new Error('Failed to delete company');
       }
     } catch (error) {
       console.error('Error deleting company:', error);
+      toast.error('Failed to delete company. Please try again.');
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -168,12 +211,14 @@ export default function CompaniesManagement() {
       if (response.ok) {
         const data = await response.json();
         setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
+        toast.success('Image uploaded successfully!');
       } else {
-        alert('Failed to upload image');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to upload image');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload image. Please try again.');
     } finally {
       setUploadingImage(false);
     }
@@ -240,10 +285,38 @@ export default function CompaniesManagement() {
 
   return (
     <div>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the company and all its features and services.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting !== null}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Companies</h1>
-          <p className="text-slate-600">Manage your company profiles</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Companies</h1>
+          <p className="text-slate-600 dark:text-slate-400">Manage your company profiles</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -436,11 +509,23 @@ export default function CompaniesManagement() {
               </div>
 
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsDialogOpen(false)}
+                  disabled={isLoading}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingCompany ? 'Update' : 'Create'} Company
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {editingCompany ? 'Updating...' : 'Creating...'}
+                    </>
+                  ) : (
+                    `${editingCompany ? 'Update' : 'Create'} Company`
+                  )}
                 </Button>
               </div>
             </form>
@@ -449,16 +534,31 @@ export default function CompaniesManagement() {
       </div>
 
       <div className="grid gap-6">
-        {companies.map((company) => (
-          <Card key={company.id}>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        ) : companies.length === 0 ? (
+          <Card>
+            <CardContent className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <Building2 className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No companies yet</h3>
+                <p className="text-slate-600 dark:text-slate-400">Get started by creating your first company.</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          companies.map((company) => (
+          <Card key={company.id} className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 dark:text-slate-100">
                     <Building2 className="w-5 h-5" />
                     {company.name}
                   </CardTitle>
-                  <CardDescription>{company.description}</CardDescription>
+                  <CardDescription className="dark:text-slate-400">{company.description}</CardDescription>
                 </div>
                 <div className="flex gap-2">
                   <Badge variant={company.isActive ? 'default' : 'secondary'}>
@@ -474,9 +574,14 @@ export default function CompaniesManagement() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => handleDelete(company.id)}
+                    onClick={() => handleDeleteClick(company.id)}
+                    disabled={isDeleting === company.id}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    {isDeleting === company.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -506,7 +611,8 @@ export default function CompaniesManagement() {
               </div>
             </CardContent>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

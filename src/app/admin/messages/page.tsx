@@ -1,10 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, Mail, Phone, Building2, Calendar, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Users, Mail, Phone, Building2, Calendar, Eye, EyeOff, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ContactMessage {
   id: string;
@@ -19,6 +30,11 @@ interface ContactMessage {
 
 export default function MessagesManagement() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMessages();
@@ -26,15 +42,23 @@ export default function MessagesManagement() {
 
   const fetchMessages = async () => {
     try {
+      setLoading(true);
       const response = await fetch('/api/contact');
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
       const data = await response.json();
       setMessages(data);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      toast.error('Failed to load messages. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const toggleReadStatus = async (messageId: string, isRead: boolean) => {
+    setUpdatingStatus(messageId);
     try {
       const response = await fetch(`/api/contact/${messageId}`, {
         method: 'PUT',
@@ -48,27 +72,45 @@ export default function MessagesManagement() {
             msg.id === messageId ? { ...msg, isRead: !isRead } : msg
           )
         );
+        toast.success(isRead ? 'Message marked as unread' : 'Message marked as read');
+      } else {
+        throw new Error('Failed to update message status');
       }
     } catch (error) {
       console.error('Error updating message status:', error);
+      toast.error('Failed to update message status. Please try again.');
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this message?')) {
-      return;
-    }
+  const handleDeleteClick = (id: string) => {
+    setMessageToDelete(id);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!messageToDelete) return;
+
+    setIsDeleting(messageToDelete);
     try {
-      const response = await fetch(`/api/contact/${id}`, {
+      const response = await fetch(`/api/contact/${messageToDelete}`, {
         method: 'DELETE'
       });
 
       if (response.ok) {
-        fetchMessages();
+        toast.success('Message deleted successfully!');
+        await fetchMessages();
+        setDeleteDialogOpen(false);
+        setMessageToDelete(null);
+      } else {
+        throw new Error('Failed to delete message');
       }
     } catch (error) {
       console.error('Error deleting message:', error);
+      toast.error('Failed to delete message. Please try again.');
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -86,37 +128,81 @@ export default function MessagesManagement() {
 
   return (
     <div>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the message.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting !== null}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Contact Messages</h1>
-          <p className="text-slate-600">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Contact Messages</h1>
+          <p className="text-slate-600 dark:text-slate-400">
             Manage incoming contact messages 
             {unreadCount > 0 && (
-              <Badge className="ml-2 bg-red-100 text-red-800">
+              <Badge className="ml-2 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                 {unreadCount} unread
               </Badge>
             )}
           </p>
         </div>
-        <Button onClick={fetchMessages} variant="outline">
-          Refresh
+        <Button onClick={fetchMessages} variant="outline" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Loading...
+            </>
+          ) : (
+            'Refresh'
+          )}
         </Button>
       </div>
 
       <div className="space-y-4">
-        {messages.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        ) : messages.length === 0 ? (
           <Card>
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <Mail className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 mb-2">No messages yet</h3>
-                <p className="text-slate-600">Contact messages will appear here when visitors submit the form.</p>
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No messages yet</h3>
+                <p className="text-slate-600 dark:text-slate-400">Contact messages will appear here when visitors submit the form.</p>
               </div>
             </CardContent>
           </Card>
         ) : (
           messages.map((message) => (
-            <Card key={message.id} className={!message.isRead ? 'border-blue-200 bg-blue-50/30' : ''}>
+            <Card 
+              key={message.id} 
+              className={`dark:bg-slate-800 dark:border-slate-700 ${
+                !message.isRead ? 'border-blue-200 bg-blue-50/30 dark:border-blue-800 dark:bg-blue-900/20' : ''
+              }`}
+            >
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="flex items-start gap-3">
@@ -124,13 +210,13 @@ export default function MessagesManagement() {
                       <Users className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 dark:text-slate-100">
                         {message.name}
                         {!message.isRead && (
-                          <Badge className="bg-blue-100 text-blue-800">New</Badge>
+                          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">New</Badge>
                         )}
                       </CardTitle>
-                      <CardDescription className="flex items-center gap-4 mt-1">
+                      <CardDescription className="flex items-center gap-4 mt-1 dark:text-slate-400">
                         <span className="flex items-center gap-1">
                           <Mail className="w-3 h-3" />
                           {message.email}
@@ -153,22 +239,34 @@ export default function MessagesManagement() {
                       variant="outline"
                       size="sm"
                       onClick={() => toggleReadStatus(message.id, message.isRead)}
+                      disabled={updatingStatus === message.id}
                     >
-                      {message.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {updatingStatus === message.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : message.isRead ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => handleDelete(message.id)}
+                      onClick={() => handleDeleteClick(message.id)}
+                      disabled={isDeleting === message.id}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      {isDeleting === message.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="bg-white p-4 rounded-lg border border-slate-200">
-                  <p className="text-slate-700 whitespace-pre-wrap">{message.message}</p>
+                <div className="bg-white dark:bg-slate-700 p-4 rounded-lg border border-slate-200 dark:border-slate-600">
+                  <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{message.message}</p>
                 </div>
               </CardContent>
             </Card>

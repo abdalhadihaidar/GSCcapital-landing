@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MessageSquare, Plus, Edit, Trash2, Star } from 'lucide-react';
+import { MessageSquare, Plus, Edit, Trash2, Star, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Testimonial {
   id: string;
@@ -31,6 +42,10 @@ export default function TestimonialsManagement() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [testimonialToDelete, setTestimonialToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -39,6 +54,7 @@ export default function TestimonialsManagement() {
     rating: 5,
     order: 0
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchTestimonials();
@@ -92,21 +108,33 @@ export default function TestimonialsManagement() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this testimonial?')) {
-      return;
-    }
+  const handleDeleteClick = (id: string) => {
+    setTestimonialToDelete(id);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!testimonialToDelete) return;
+
+    setIsDeleting(testimonialToDelete);
     try {
-      const response = await fetch(`/api/testimonials/${id}`, {
+      const response = await fetch(`/api/testimonials/${testimonialToDelete}`, {
         method: 'DELETE'
       });
 
       if (response.ok) {
-        fetchTestimonials();
+        toast.success('Testimonial deleted successfully!');
+        await fetchTestimonials();
+        setDeleteDialogOpen(false);
+        setTestimonialToDelete(null);
+      } else {
+        throw new Error('Failed to delete testimonial');
       }
     } catch (error) {
       console.error('Error deleting testimonial:', error);
+      toast.error('Failed to delete testimonial. Please try again.');
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -133,10 +161,38 @@ export default function TestimonialsManagement() {
 
   return (
     <div>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the testimonial.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting !== null}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Testimonials</h1>
-          <p className="text-slate-600">Manage client testimonials and reviews</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Testimonials</h1>
+          <p className="text-slate-600 dark:text-slate-400">Manage client testimonials and reviews</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -221,11 +277,23 @@ export default function TestimonialsManagement() {
               </div>
 
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsDialogOpen(false)}
+                  disabled={isLoading}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingTestimonial ? 'Update' : 'Create'} Testimonial
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {editingTestimonial ? 'Updating...' : 'Creating...'}
+                    </>
+                  ) : (
+                    `${editingTestimonial ? 'Update' : 'Create'} Testimonial`
+                  )}
                 </Button>
               </div>
             </form>
@@ -234,16 +302,31 @@ export default function TestimonialsManagement() {
       </div>
 
       <div className="grid gap-6">
-        {testimonials.map((testimonial) => (
-          <Card key={testimonial.id}>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        ) : testimonials.length === 0 ? (
+          <Card>
+            <CardContent className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <MessageSquare className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No testimonials yet</h3>
+                <p className="text-slate-600 dark:text-slate-400">Get started by creating your first testimonial.</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          testimonials.map((testimonial) => (
+          <Card key={testimonial.id} className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 dark:text-slate-100">
                     <MessageSquare className="w-5 h-5" />
                     {testimonial.name}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="dark:text-slate-400">
                     {testimonial.role && `${testimonial.role}`}
                     {testimonial.role && testimonial.company && ' at '}
                     {testimonial.company && `${testimonial.company}`}
@@ -263,18 +346,24 @@ export default function TestimonialsManagement() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => handleDelete(testimonial.id)}
+                    onClick={() => handleDeleteClick(testimonial.id)}
+                    disabled={isDeleting === testimonial.id}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    {isDeleting === testimonial.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-slate-600 italic">"{testimonial.content}"</p>
+              <p className="text-slate-600 dark:text-slate-400 italic">"{testimonial.content}"</p>
             </CardContent>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

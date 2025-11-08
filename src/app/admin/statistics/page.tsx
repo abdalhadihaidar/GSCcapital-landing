@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BarChart3, Plus, Edit, Trash2 } from 'lucide-react';
+import { BarChart3, Plus, Edit, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Statistic {
   id: string;
@@ -45,6 +56,10 @@ export default function StatisticsManagement() {
   const [statistics, setStatistics] = useState<Statistic[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingStatistic, setEditingStatistic] = useState<Statistic | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [statisticToDelete, setStatisticToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     label: '',
     value: '',
@@ -53,6 +68,7 @@ export default function StatisticsManagement() {
     order: 0
   });
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStatistics();
@@ -110,12 +126,14 @@ export default function StatisticsManagement() {
       if (response.ok) {
         const data = await response.json();
         setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
+        toast.success('Image uploaded successfully!');
       } else {
-        alert('Failed to upload image');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to upload image');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload image. Please try again.');
     } finally {
       setUploadingImage(false);
     }
@@ -133,21 +151,33 @@ export default function StatisticsManagement() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this statistic?')) {
-      return;
-    }
+  const handleDeleteClick = (id: string) => {
+    setStatisticToDelete(id);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!statisticToDelete) return;
+
+    setIsDeleting(statisticToDelete);
     try {
-      const response = await fetch(`/api/statistics/${id}`, {
+      const response = await fetch(`/api/statistics/${statisticToDelete}`, {
         method: 'DELETE'
       });
 
       if (response.ok) {
-        fetchStatistics();
+        toast.success('Statistic deleted successfully!');
+        await fetchStatistics();
+        setDeleteDialogOpen(false);
+        setStatisticToDelete(null);
+      } else {
+        throw new Error('Failed to delete statistic');
       }
     } catch (error) {
       console.error('Error deleting statistic:', error);
+      toast.error('Failed to delete statistic. Please try again.');
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -164,10 +194,38 @@ export default function StatisticsManagement() {
 
   return (
     <div>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the statistic.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting !== null}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Statistics</h1>
-          <p className="text-slate-600">Manage website statistics and metrics</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Statistics</h1>
+          <p className="text-slate-600 dark:text-slate-400">Manage website statistics and metrics</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -264,11 +322,23 @@ export default function StatisticsManagement() {
               </div>
 
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsDialogOpen(false)}
+                  disabled={isLoading}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingStatistic ? 'Update' : 'Create'} Statistic
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {editingStatistic ? 'Updating...' : 'Creating...'}
+                    </>
+                  ) : (
+                    `${editingStatistic ? 'Update' : 'Create'} Statistic`
+                  )}
                 </Button>
               </div>
             </form>
@@ -277,8 +347,23 @@ export default function StatisticsManagement() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {statistics.map((statistic) => (
-          <Card key={statistic.id}>
+        {loading ? (
+          <div className="col-span-full flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        ) : statistics.length === 0 ? (
+          <Card className="col-span-full">
+            <CardContent className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <BarChart3 className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No statistics yet</h3>
+                <p className="text-slate-600 dark:text-slate-400">Get started by creating your first statistic.</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          statistics.map((statistic) => (
+          <Card key={statistic.id} className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
@@ -286,8 +371,8 @@ export default function StatisticsManagement() {
                     <BarChart3 className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">{statistic.value}</CardTitle>
-                    <CardDescription>{statistic.label}</CardDescription>
+                    <CardTitle className="text-lg dark:text-slate-100">{statistic.value}</CardTitle>
+                    <CardDescription className="dark:text-slate-400">{statistic.label}</CardDescription>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -301,15 +386,21 @@ export default function StatisticsManagement() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => handleDelete(statistic.id)}
+                    onClick={() => handleDeleteClick(statistic.id)}
+                    disabled={isDeleting === statistic.id}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    {isDeleting === statistic.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               </div>
             </CardHeader>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

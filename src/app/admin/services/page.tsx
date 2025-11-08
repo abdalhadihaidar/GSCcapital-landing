@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Settings, Plus, Edit, Trash2 } from 'lucide-react';
+import { Settings, Plus, Edit, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Service {
   id: string;
@@ -56,6 +67,10 @@ export default function ServicesManagement() {
   const [services, setServices] = useState<Service[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -65,6 +80,7 @@ export default function ServicesManagement() {
     order: 0
   });
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchServices();
@@ -72,17 +88,25 @@ export default function ServicesManagement() {
 
   const fetchServices = async () => {
     try {
+      setLoading(true);
       const response = await fetch('/api/services');
+      if (!response.ok) {
+        throw new Error('Failed to fetch services');
+      }
       const data = await response.json();
       setServices(data);
     } catch (error) {
       console.error('Error fetching services:', error);
+      toast.error('Failed to load services. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    setIsLoading(true);
     try {
       const url = editingService 
         ? `/api/services/${editingService.id}`
@@ -96,12 +120,19 @@ export default function ServicesManagement() {
       });
 
       if (response.ok) {
-        fetchServices();
+        toast.success(editingService ? 'Service updated successfully!' : 'Service created successfully!');
+        await fetchServices();
         setIsDialogOpen(false);
         resetForm();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save service');
       }
     } catch (error) {
       console.error('Error saving service:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save service. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -122,12 +153,14 @@ export default function ServicesManagement() {
       if (response.ok) {
         const data = await response.json();
         setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
+        toast.success('Image uploaded successfully!');
       } else {
-        alert('Failed to upload image');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to upload image');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload image. Please try again.');
     } finally {
       setUploadingImage(false);
     }
@@ -146,21 +179,33 @@ export default function ServicesManagement() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this service?')) {
-      return;
-    }
+  const handleDeleteClick = (id: string) => {
+    setServiceToDelete(id);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!serviceToDelete) return;
+
+    setIsDeleting(serviceToDelete);
     try {
-      const response = await fetch(`/api/services/${id}`, {
+      const response = await fetch(`/api/services/${serviceToDelete}`, {
         method: 'DELETE'
       });
 
       if (response.ok) {
-        fetchServices();
+        toast.success('Service deleted successfully!');
+        await fetchServices();
+        setDeleteDialogOpen(false);
+        setServiceToDelete(null);
+      } else {
+        throw new Error('Failed to delete service');
       }
     } catch (error) {
       console.error('Error deleting service:', error);
+      toast.error('Failed to delete service. Please try again.');
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -189,10 +234,38 @@ export default function ServicesManagement() {
 
   return (
     <div>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the service.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting !== null}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Services</h1>
-          <p className="text-slate-600">Manage website services and offerings</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Services</h1>
+          <p className="text-slate-600 dark:text-slate-400">Manage website services and offerings</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -304,11 +377,23 @@ export default function ServicesManagement() {
               </div>
 
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsDialogOpen(false)}
+                  disabled={isLoading}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingService ? 'Update' : 'Create'} Service
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {editingService ? 'Updating...' : 'Creating...'}
+                    </>
+                  ) : (
+                    `${editingService ? 'Update' : 'Create'} Service`
+                  )}
                 </Button>
               </div>
             </form>
@@ -317,8 +402,23 @@ export default function ServicesManagement() {
       </div>
 
       <div className="grid gap-6">
-        {services.map((service) => (
-          <Card key={service.id}>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        ) : services.length === 0 ? (
+          <Card>
+            <CardContent className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <Settings className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No services yet</h3>
+                <p className="text-slate-600 dark:text-slate-400">Get started by creating your first service.</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          services.map((service) => (
+          <Card key={service.id} className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="flex items-start gap-3">
@@ -326,13 +426,13 @@ export default function ServicesManagement() {
                     <Settings className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 dark:text-slate-100">
                       {service.title}
                       <Badge className={getCategoryColor(service.category)}>
                         {service.category}
                       </Badge>
                     </CardTitle>
-                    <CardDescription>{service.description}</CardDescription>
+                    <CardDescription className="dark:text-slate-400">{service.description}</CardDescription>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -346,15 +446,21 @@ export default function ServicesManagement() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => handleDelete(service.id)}
+                    onClick={() => handleDeleteClick(service.id)}
+                    disabled={isDeleting === service.id}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    {isDeleting === service.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               </div>
             </CardHeader>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
