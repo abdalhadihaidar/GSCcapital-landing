@@ -50,7 +50,7 @@ export default function AdminAuth() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@gsccapitalgroup.com"
+                placeholder="Enter your email"
                 required
               />
             </div>
@@ -69,9 +69,6 @@ export default function AdminAuth() {
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-slate-600">
-            Demo credentials: admin@gsccapitalgroup.com / admin123
-          </div>
         </CardContent>
       </Card>
     </div>
