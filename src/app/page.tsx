@@ -153,12 +153,18 @@ export default function EnhancedHomePage() {
       const testimonialsData = await testimonialsRes.json();
       const servicesData = await servicesRes.json();
 
-      setCompanies(companiesData);
-      setStatistics(statisticsData);
-      setTestimonials(testimonialsData);
-      setServices(servicesData);
+      // Ensure data is always an array to prevent .map() errors
+      setCompanies(Array.isArray(companiesData) ? companiesData : []);
+      setStatistics(Array.isArray(statisticsData) ? statisticsData : []);
+      setTestimonials(Array.isArray(testimonialsData) ? testimonialsData : []);
+      setServices(Array.isArray(servicesData) ? servicesData : []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      // Set empty arrays on error to prevent crashes
+      setCompanies([]);
+      setStatistics([]);
+      setTestimonials([]);
+      setServices([]);
     } finally {
       setLoading(false);
     }
@@ -733,7 +739,7 @@ export default function EnhancedHomePage() {
             </div>
             
             <div className="border-t border-slate-800 pt-8 text-center text-sm text-slate-400">
-              <p>© 2024 GSC Capital Group. {t.footer.allRightsReserved} | www.gsccapitalgroup.com</p>
+              <p>© 2024 GSC Capital Group. {t.footer.allRightsReserved} | <a href="https://www.gsccapitalgroup.com" className="hover:underline" target="_blank" rel="noopener noreferrer">www.gsccapitalgroup.com</a></p>
             </div>
           </div>
         </footer>

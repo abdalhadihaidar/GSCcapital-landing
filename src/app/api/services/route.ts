@@ -8,13 +8,11 @@ export async function GET() {
       orderBy: { order: 'asc' }
     });
 
-    return NextResponse.json(services);
+    return NextResponse.json(services || []);
   } catch (error) {
     console.error('Error fetching services:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch services' },
-      { status: 500 }
-    );
+    // Return empty array instead of error to prevent frontend crashes
+    return NextResponse.json([], { status: 200 });
   }
 }
 
