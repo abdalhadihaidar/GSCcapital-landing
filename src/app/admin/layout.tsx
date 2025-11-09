@@ -22,7 +22,6 @@ import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useTheme } from 'next-themes';
 import { translations, Language } from '@/lib/translations';
-import { useState, useEffect } from 'react';
 
 const getNavigation = (t: typeof translations.en.admin) => [
   { name: t.dashboard, href: '/admin', icon: LayoutDashboard },
