@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { Globe, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,7 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useTranslations } from 'next-intl';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -20,20 +18,29 @@ const languages = [
   { code: 'es', name: 'Español', flag: '🇪🇸' },
 ];
 
-export function LanguageSwitcher() {
-  const [currentLang, setCurrentLang] = useState('en');
-  const router = useRouter();
-  const pathname = usePathname();
-  const t = useTranslations('language');
+interface LanguageSwitcherProps {
+  currentLang?: string;
+  onLanguageChange?: (lang: string) => void;
+}
+
+export function LanguageSwitcher({ currentLang: propLang, onLanguageChange }: LanguageSwitcherProps) {
+  const [currentLang, setCurrentLang] = useState(propLang || 'en');
+
+  useEffect(() => {
+    if (propLang) {
+      setCurrentLang(propLang);
+    }
+  }, [propLang]);
 
   const handleLanguageChange = (langCode: string) => {
     setCurrentLang(langCode);
-    
-    // Get the current path without the locale
-    const pathWithoutLocale = pathname.replace(/^\/(en|ar|zh|fr|es)/, '') || '/';
-    
-    // Navigate to the new locale
-    router.push(`/${langCode}${pathWithoutLocale}`);
+    if (onLanguageChange) {
+      onLanguageChange(langCode);
+    } else {
+      // Store in localStorage as fallback
+      localStorage.setItem('language', langCode);
+      window.location.reload();
+    }
   };
 
   const currentLanguage = languages.find(lang => lang.code === currentLang) || languages[0];

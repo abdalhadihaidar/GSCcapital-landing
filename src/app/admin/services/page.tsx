@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { optimizePreviewImage } from '@/lib/cloudinary';
+import { useAdminTranslations } from '@/hooks/use-admin-translations';
 
 interface Service {
   id: string;
@@ -65,6 +66,7 @@ const iconOptions = [
 ];
 
 export default function ServicesManagement() {
+  const { t } = useAdminTranslations();
   const [services, setServices] = useState<Service[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -98,7 +100,7 @@ export default function ServicesManagement() {
       setServices(data);
     } catch (error) {
       console.error('Error fetching services:', error);
-      toast.error('Failed to load services. Please try again.');
+      toast.error(t.saveError);
     } finally {
       setLoading(false);
     }
@@ -121,7 +123,7 @@ export default function ServicesManagement() {
       });
 
       if (response.ok) {
-        toast.success(editingService ? 'Service updated successfully!' : 'Service created successfully!');
+        toast.success(t.saveSuccess);
         await fetchServices();
         setIsDialogOpen(false);
         resetForm();
@@ -131,7 +133,7 @@ export default function ServicesManagement() {
       }
     } catch (error) {
       console.error('Error saving service:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save service. Please try again.');
+      toast.error(error instanceof Error ? error.message : t.saveError);
     } finally {
       setIsLoading(false);
     }
@@ -154,14 +156,14 @@ export default function ServicesManagement() {
       if (response.ok) {
         const data = await response.json();
         setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
-        toast.success('Image uploaded successfully!');
+        toast.success(t.uploadSuccess);
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to upload image');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to upload image. Please try again.');
+      toast.error(error instanceof Error ? error.message : t.uploadError);
     } finally {
       setUploadingImage(false);
     }
@@ -195,7 +197,7 @@ export default function ServicesManagement() {
       });
 
       if (response.ok) {
-        toast.success('Service deleted successfully!');
+        toast.success(t.deleteSuccess);
         await fetchServices();
         setDeleteDialogOpen(false);
         setServiceToDelete(null);
@@ -204,7 +206,7 @@ export default function ServicesManagement() {
       }
     } catch (error) {
       console.error('Error deleting service:', error);
-      toast.error('Failed to delete service. Please try again.');
+      toast.error(t.deleteError);
     } finally {
       setIsDeleting(null);
     }
@@ -238,13 +240,13 @@ export default function ServicesManagement() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deleteConfirm}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the service.
+              {t.deleteMessage}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting !== null}>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isDeleting !== null}
@@ -253,10 +255,10 @@ export default function ServicesManagement() {
               {isDeleting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deleting...
+                  {t.deleting}
                 </>
               ) : (
-                'Delete'
+                t.delete
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -265,28 +267,28 @@ export default function ServicesManagement() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Services</h1>
-          <p className="text-slate-600 dark:text-slate-400">Manage website services and offerings</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t.services}</h1>
+          <p className="text-slate-600 dark:text-slate-400">{t.services} Management</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Service
+              {t.add} {t.services}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingService ? 'Edit Service' : 'Add New Service'}
+                {editingService ? `${t.edit} ${t.services}` : `${t.add} ${t.services}`}
               </DialogTitle>
               <DialogDescription>
-                Create or update a website service
+                {editingService ? t.update : t.create} {t.services.toLowerCase()}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="title">Service Title</Label>
+                <Label htmlFor="title">{t.title}</Label>
                 <Input
                   id="title"
                   value={formData.title}
@@ -296,7 +298,7 @@ export default function ServicesManagement() {
               </div>
               
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t.description}</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -306,7 +308,7 @@ export default function ServicesManagement() {
               </div>
 
               <div>
-                <Label htmlFor="image">Image (Optional - will override icon)</Label>
+                <Label htmlFor="image">{t.image} ({t.uploadImage})</Label>
                 <Input
                   id="image"
                   type="file"
@@ -316,7 +318,7 @@ export default function ServicesManagement() {
                 />
                 {formData.imageUrl && (
                   <div className="mt-2">
-                    <Label className="text-sm font-medium mb-2 block">Preview</Label>
+                    <Label className="text-sm font-medium mb-2 block">{t.preview}</Label>
                     <div className="relative w-32 h-32 border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
                       <img 
                         src={optimizePreviewImage(formData.imageUrl)} 
@@ -335,16 +337,16 @@ export default function ServicesManagement() {
                       onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
                       className="mt-2"
                     >
-                      Remove Image
+                      {t.removeImage}
                     </Button>
                   </div>
                 )}
-                {uploadingImage && <p className="text-sm text-slate-500 mt-1">Uploading...</p>}
+                {uploadingImage && <p className="text-sm text-slate-500 mt-1">{t.uploading}</p>}
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">{t.category}</Label>
                   <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -359,7 +361,7 @@ export default function ServicesManagement() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="icon">Icon</Label>
+                  <Label htmlFor="icon">{t.icon}</Label>
                   <Select value={formData.icon} onValueChange={(value) => setFormData(prev => ({ ...prev, icon: value }))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -374,7 +376,7 @@ export default function ServicesManagement() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="order">Order</Label>
+                  <Label htmlFor="order">{t.order}</Label>
                   <Input
                     id="order"
                     type="number"
@@ -391,16 +393,16 @@ export default function ServicesManagement() {
                   onClick={() => setIsDialogOpen(false)}
                   disabled={isLoading}
                 >
-                  Cancel
+                  {t.cancel}
                 </Button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {editingService ? 'Updating...' : 'Creating...'}
+                      {editingService ? t.updating : t.creating}
                     </>
                   ) : (
-                    `${editingService ? 'Update' : 'Create'} Service`
+                    `${editingService ? t.update : t.create} ${t.services}`
                   )}
                 </Button>
               </div>
@@ -419,8 +421,8 @@ export default function ServicesManagement() {
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <Settings className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No services yet</h3>
-                <p className="text-slate-600 dark:text-slate-400">Get started by creating your first service.</p>
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">{t.noData}</h3>
+                <p className="text-slate-600 dark:text-slate-400">{t.add} {t.services.toLowerCase()} to get started.</p>
               </div>
             </CardContent>
           </Card>

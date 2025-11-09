@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { optimizePreviewImage } from '@/lib/cloudinary';
+import { useAdminTranslations } from '@/hooks/use-admin-translations';
 
 interface Company {
   id: string;
@@ -68,6 +69,7 @@ const colorOptions = [
 ];
 
 export default function CompaniesManagement() {
+  const { t } = useAdminTranslations();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
@@ -133,7 +135,7 @@ export default function CompaniesManagement() {
       });
 
       if (response.ok) {
-        toast.success(editingCompany ? 'Company updated successfully!' : 'Company created successfully!');
+        toast.success(t.saveSuccess);
         await fetchCompanies();
         setIsDialogOpen(false);
         resetForm();
@@ -143,7 +145,7 @@ export default function CompaniesManagement() {
       }
     } catch (error) {
       console.error('Error saving company:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save company. Please try again.');
+      toast.error(error instanceof Error ? error.message : t.saveError);
     } finally {
       setIsLoading(false);
     }
@@ -180,7 +182,7 @@ export default function CompaniesManagement() {
       });
 
       if (response.ok) {
-        toast.success('Company deleted successfully!');
+        toast.success(t.deleteSuccess);
         await fetchCompanies();
         setDeleteDialogOpen(false);
         setCompanyToDelete(null);
@@ -189,7 +191,7 @@ export default function CompaniesManagement() {
       }
     } catch (error) {
       console.error('Error deleting company:', error);
-      toast.error('Failed to delete company. Please try again.');
+      toast.error(t.deleteError);
     } finally {
       setIsDeleting(null);
     }
@@ -213,14 +215,14 @@ export default function CompaniesManagement() {
         const data = await response.json();
         const imageUrl = data.imageUrl;
         setFormData(prev => ({ ...prev, imageUrl }));
-        toast.success('Image uploaded successfully!');
+        toast.success(t.uploadSuccess);
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to upload image');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to upload image. Please try again.');
+      toast.error(error instanceof Error ? error.message : t.uploadError);
     } finally {
       setUploadingImage(false);
     }
@@ -290,13 +292,13 @@ export default function CompaniesManagement() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deleteConfirm}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the company and all its features and services.
+              {t.deleteMessage}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting !== null}>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isDeleting !== null}
@@ -305,10 +307,10 @@ export default function CompaniesManagement() {
               {isDeleting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deleting...
+                  {t.deleting || 'Deleting...'}
                 </>
               ) : (
-                'Delete'
+                t.delete
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -317,29 +319,29 @@ export default function CompaniesManagement() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Companies</h1>
-          <p className="text-slate-600 dark:text-slate-400">Manage your company profiles</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t.companies}</h1>
+          <p className="text-slate-600 dark:text-slate-400">{t.companies} Management</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Company
+              {t.add} {t.companies}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingCompany ? 'Edit Company' : 'Add New Company'}
+                {editingCompany ? `${t.edit} ${t.companies}` : `${t.add} ${t.companies}`}
               </DialogTitle>
               <DialogDescription>
-                Create or update a company profile
+                {editingCompany ? t.update : t.create} {t.companies.toLowerCase()} profile
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Company Name</Label>
+                  <Label htmlFor="name">{t.name}</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -348,7 +350,7 @@ export default function CompaniesManagement() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="slug">Slug</Label>
+                  <Label htmlFor="slug">{t.slug}</Label>
                   <Input
                     id="slug"
                     value={formData.slug}
@@ -359,7 +361,7 @@ export default function CompaniesManagement() {
               </div>
               
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t.description}</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -369,7 +371,7 @@ export default function CompaniesManagement() {
               </div>
 
               <div>
-                <Label htmlFor="image">Image (Optional - will override icon)</Label>
+                <Label htmlFor="image">{t.image} ({t.uploadImage})</Label>
                 <Input
                   id="image"
                   type="file"
@@ -379,7 +381,7 @@ export default function CompaniesManagement() {
                 />
                 {formData.imageUrl && (
                   <div className="mt-2">
-                    <Label className="text-sm font-medium mb-2 block">Preview</Label>
+                    <Label className="text-sm font-medium mb-2 block">{t.preview}</Label>
                     <div className="relative w-32 h-32 border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
                       <img 
                         src={optimizePreviewImage(formData.imageUrl)} 
@@ -398,16 +400,16 @@ export default function CompaniesManagement() {
                       onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
                       className="mt-2"
                     >
-                      Remove Image
+                      {t.removeImage}
                     </Button>
                   </div>
                 )}
-                {uploadingImage && <p className="text-sm text-slate-500 mt-1">Uploading...</p>}
+                {uploadingImage && <p className="text-sm text-slate-500 mt-1">{t.uploading}</p>}
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="icon">Icon</Label>
+                  <Label htmlFor="icon">{t.icon}</Label>
                   <Select value={formData.icon} onValueChange={(value) => setFormData(prev => ({ ...prev, icon: value }))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -422,7 +424,7 @@ export default function CompaniesManagement() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="color">Color</Label>
+                  <Label htmlFor="color">{t.color}</Label>
                   <Select value={formData.color} onValueChange={(value) => setFormData(prev => ({ ...prev, color: value }))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -437,7 +439,7 @@ export default function CompaniesManagement() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="order">Order</Label>
+                  <Label htmlFor="order">{t.order}</Label>
                   <Input
                     id="order"
                     type="number"
@@ -448,13 +450,13 @@ export default function CompaniesManagement() {
               </div>
 
               <div>
-                <Label>Features</Label>
+                <Label>{t.features}</Label>
                 {formData.features.map((feature, index) => (
                   <div key={index} className="flex gap-2 mt-2">
                     <Input
                       value={feature}
                       onChange={(e) => updateFeature(index, e.target.value)}
-                      placeholder="Feature name"
+                      placeholder={t.addFeature}
                     />
                     <Button
                       type="button"
@@ -474,24 +476,24 @@ export default function CompaniesManagement() {
                   className="mt-2"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Feature
+                  {t.addFeature}
                 </Button>
               </div>
 
               <div>
-                <Label>Services</Label>
+                <Label>{t.services}</Label>
                 {formData.services.map((service, index) => (
                   <div key={index} className="border border-slate-200 rounded-lg p-3 mt-2">
                     <div className="grid grid-cols-2 gap-2">
                       <Input
                         value={service.title}
                         onChange={(e) => updateService(index, 'title', e.target.value)}
-                        placeholder="Service title"
+                        placeholder={t.title}
                       />
                       <Input
                         value={service.description}
                         onChange={(e) => updateService(index, 'description', e.target.value)}
-                        placeholder="Service description"
+                        placeholder={t.description}
                       />
                     </div>
                     <Button
@@ -513,7 +515,7 @@ export default function CompaniesManagement() {
                   className="mt-2"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Service
+                  {t.addService}
                 </Button>
               </div>
 
@@ -524,16 +526,16 @@ export default function CompaniesManagement() {
                   onClick={() => setIsDialogOpen(false)}
                   disabled={isLoading}
                 >
-                  Cancel
+                  {t.cancel}
                 </Button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {editingCompany ? 'Updating...' : 'Creating...'}
+                      {editingCompany ? t.updating : t.creating}
                     </>
                   ) : (
-                    `${editingCompany ? 'Update' : 'Create'} Company`
+                    `${editingCompany ? t.update : t.create} ${t.companies}`
                   )}
                 </Button>
               </div>
@@ -552,8 +554,8 @@ export default function CompaniesManagement() {
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <Building2 className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No companies yet</h3>
-                <p className="text-slate-600 dark:text-slate-400">Get started by creating your first company.</p>
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">{t.noData}</h3>
+                <p className="text-slate-600 dark:text-slate-400">{t.add} {t.companies.toLowerCase()} to get started.</p>
               </div>
             </CardContent>
           </Card>
@@ -571,7 +573,7 @@ export default function CompaniesManagement() {
                 </div>
                 <div className="flex gap-2">
                   <Badge variant={company.isActive ? 'default' : 'secondary'}>
-                    {company.isActive ? 'Active' : 'Inactive'}
+                    {company.isActive ? t.active : t.inactive}
                   </Badge>
                   <Button 
                     variant="outline" 

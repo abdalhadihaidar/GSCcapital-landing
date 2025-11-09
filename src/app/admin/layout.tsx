@@ -19,15 +19,18 @@ import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { useTheme } from 'next-themes';
+import { translations, Language } from '@/lib/translations';
+import { useState, useEffect } from 'react';
 
-const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Companies', href: '/admin/companies', icon: Building2 },
-  { name: 'Statistics', href: '/admin/statistics', icon: BarChart3 },
-  { name: 'Testimonials', href: '/admin/testimonials', icon: MessageSquare },
-  { name: 'Services', href: '/admin/services', icon: Settings },
-  { name: 'Contact Messages', href: '/admin/messages', icon: Users },
+const getNavigation = (t: typeof translations.en.admin) => [
+  { name: t.dashboard, href: '/admin', icon: LayoutDashboard },
+  { name: t.companies, href: '/admin/companies', icon: Building2 },
+  { name: t.statistics, href: '/admin/statistics', icon: BarChart3 },
+  { name: t.testimonials, href: '/admin/testimonials', icon: MessageSquare },
+  { name: t.services, href: '/admin/services', icon: Settings },
+  { name: t.messages, href: '/admin/messages', icon: Users },
 ];
 
 export default function AdminLayout({
@@ -36,9 +39,21 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [language, setLanguage] = useState<Language>('en');
   const pathname = usePathname();
   const router = useRouter();
   const { theme } = useTheme();
+
+  useEffect(() => {
+    const savedLang = localStorage.getItem('language') as Language;
+    if (savedLang && ['en', 'ar', 'zh', 'fr', 'es'].includes(savedLang)) {
+      setLanguage(savedLang);
+    }
+  }, []);
+
+  const t = translations[language].admin;
+  const navigation = getNavigation(t);
+  const isRTL = language === 'ar';
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('adminAuthenticated');
@@ -73,7 +88,7 @@ export default function AdminLayout({
                 />
                 <div className="absolute inset-0 rounded-lg border-2 border-purple-500/30 blur-sm -z-10 dark:block hidden" />
               </div>
-              <h2 className="text-lg font-semibold dark:text-slate-100">Admin Panel</h2>
+              <h2 className="text-lg font-semibold dark:text-slate-100">{t.panel}</h2>
             </div>
             <Button
               variant="ghost"
@@ -152,12 +167,13 @@ export default function AdminLayout({
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">
               <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-                GSC Capital Group Admin
+                {t.panel}
               </h1>
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
+              <LanguageSwitcher currentLang={language} onLanguageChange={(lang) => { setLanguage(lang as Language); localStorage.setItem('language', lang); }} />
               <DarkModeToggle />
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <Button variant="ghost" size="sm" onClick={handleLogout} title={t.logout}>
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>

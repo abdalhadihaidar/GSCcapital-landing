@@ -18,8 +18,10 @@ import { EnhancedCardDark } from '@/components/enhanced-card-dark';
 import { HeroSection } from '@/components/hero-section';
 import { HeroSectionDark } from '@/components/hero-section-dark';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { useTheme } from 'next-themes';
 import { optimizeStatisticImage, optimizeServiceImage } from '@/lib/cloudinary';
+import { translations, Language } from '@/lib/translations';
 
 // Icon mapping
 const iconMap: { [key: string]: any } = {
@@ -94,6 +96,7 @@ export default function EnhancedHomePage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState<Language>('en');
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
@@ -103,6 +106,17 @@ export default function EnhancedHomePage() {
   const { theme, systemTheme } = useTheme();
   const currentTheme = theme === 'system' ? systemTheme : theme;
   const isDark = currentTheme === 'dark';
+
+  // Load language from localStorage on mount
+  useEffect(() => {
+    const savedLang = localStorage.getItem('language') as Language;
+    if (savedLang && ['en', 'ar', 'zh', 'fr', 'es'].includes(savedLang)) {
+      setLanguage(savedLang);
+    }
+  }, []);
+
+  const t = translations[language];
+  const isRTL = language === 'ar';
 
   useEffect(() => {
     fetchData();
@@ -161,13 +175,13 @@ export default function EnhancedHomePage() {
       });
 
       if (response.ok) {
-        toast.success('Message sent successfully!');
+        toast.success(t.contact.success);
         setContactForm({ name: '', email: '', company: '', message: '' });
       } else {
         throw new Error('Failed to send message');
       }
     } catch (error) {
-      toast.error('Failed to send message. Please try again.');
+      toast.error(t.contact.error);
     }
   };
 
@@ -190,7 +204,7 @@ export default function EnhancedHomePage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading...</p>
+          <p className="text-slate-600">{language === 'ar' ? 'جاري التحميل...' : language === 'zh' ? '加载中...' : language === 'fr' ? 'Chargement...' : language === 'es' ? 'Cargando...' : 'Loading...'}</p>
         </div>
       </div>
     );
@@ -222,24 +236,31 @@ export default function EnhancedHomePage() {
               </div>
 
               {/* Desktop Navigation */}
-              <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
-                {['Home', 'Companies', 'Services', 'About', 'Contact'].map((item) => (
+              <div className={`hidden md:flex items-center ${isRTL ? 'space-x-reverse' : 'space-x-6'} lg:space-x-8`}>
+                {[
+                  { key: 'home', label: t.nav.home },
+                  { key: 'companies', label: t.nav.companies },
+                  { key: 'services', label: t.nav.services },
+                  { key: 'about', label: t.nav.about },
+                  { key: 'contact', label: t.nav.contact },
+                ].map((item) => (
                   <button
-                    key={item}
-                    onClick={() => scrollToSection(item.toLowerCase())}
+                    key={item.key}
+                    onClick={() => scrollToSection(item.key)}
                     className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                      activeSection === item.toLowerCase() ? 'text-blue-600' : isDark ? 'text-slate-300' : 'text-slate-600'
+                      activeSection === item.key ? 'text-blue-600' : isDark ? 'text-slate-300' : 'text-slate-600'
                     }`}
                   >
-                    {item}
+                    {item.label}
                   </button>
                 ))}
+                <LanguageSwitcher currentLang={language} onLanguageChange={(lang) => { setLanguage(lang as Language); localStorage.setItem('language', lang); }} />
                 <DarkModeToggle />
                 <Button 
                   onClick={() => scrollToSection('contact')}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-sm px-4 py-2"
                 >
-                  Get Started
+                  {t.hero.getStarted}
                 </Button>
               </div>
 
@@ -255,20 +276,29 @@ export default function EnhancedHomePage() {
             {/* Mobile Navigation */}
             {isMenuOpen && (
               <div className={`md:hidden py-4 ${isDark ? 'border-slate-700' : 'border-slate-200'} border-t`}>
-                {['Home', 'Companies', 'Services', 'About', 'Contact'].map((item) => (
+                {[
+                  { key: 'home', label: t.nav.home },
+                  { key: 'companies', label: t.nav.companies },
+                  { key: 'services', label: t.nav.services },
+                  { key: 'about', label: t.nav.about },
+                  { key: 'contact', label: t.nav.contact },
+                ].map((item) => (
                   <button
-                    key={item}
+                    key={item.key}
                     onClick={() => {
-                      scrollToSection(item.toLowerCase());
+                      scrollToSection(item.key);
                       setIsMenuOpen(false);
                     }}
-                    className={`block w-full text-left py-2 px-4 text-sm font-medium transition-colors ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'} ${
-                      activeSection === item.toLowerCase() ? 'text-blue-600 bg-slate-50 dark:bg-slate-700' : isDark ? 'text-slate-300' : 'text-slate-600'
+                    className={`block w-full ${isRTL ? 'text-right' : 'text-left'} py-2 px-4 text-sm font-medium transition-colors ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'} ${
+                      activeSection === item.key ? 'text-blue-600 bg-slate-50 dark:bg-slate-700' : isDark ? 'text-slate-300' : 'text-slate-600'
                     }`}
                   >
-                    {item}
+                    {item.label}
                   </button>
                 ))}
+                <div className="px-4 py-2">
+                  <LanguageSwitcher currentLang={language} onLanguageChange={(lang) => { setLanguage(lang as Language); localStorage.setItem('language', lang); }} />
+                </div>
                 <div className="px-4 py-2">
                   <DarkModeToggle />
                 </div>
@@ -280,7 +310,7 @@ export default function EnhancedHomePage() {
                     }}
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
-                    Get Started
+                    {t.hero.getStarted}
                   </Button>
                 </div>
               </div>
@@ -290,7 +320,7 @@ export default function EnhancedHomePage() {
 
         {/* Hero Section */}
         <div id="home">
-          {isDark ? <HeroSectionDark locale="en" /> : <HeroSection locale="en" />}
+          {isDark ? <HeroSectionDark locale={language} /> : <HeroSection locale={language} />}
         </div>
 
         {/* Stats Section */}
@@ -373,25 +403,25 @@ export default function EnhancedHomePage() {
 
         {/* Services Overview */}
         {services.length > 0 && (
-          <section id="services" className={`py-12 lg:py-16 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+          <section id="services" className={`py-12 lg:py-16 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-slate-800' : 'bg-white'}`} dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="container mx-auto">
               <div className="text-center max-w-3xl mx-auto mb-8 lg:mb-12">
                 <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  Comprehensive Services
+                  {t.services.title}
                 </h2>
                 <p className={`text-lg ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                  From technology to real estate, we provide end-to-end solutions
+                  {t.services.description}
                 </p>
               </div>
 
               <Tabs defaultValue="all" className="max-w-4xl mx-auto">
                 <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 h-auto">
-                  <TabsTrigger value="all" className="text-xs lg:text-sm">All</TabsTrigger>
-                  <TabsTrigger value="property" className="text-xs lg:text-sm">Property</TabsTrigger>
-                  <TabsTrigger value="tech" className="text-xs lg:text-sm">Tech</TabsTrigger>
-                  <TabsTrigger value="business" className="text-xs lg:text-sm">Business</TabsTrigger>
-                  <TabsTrigger value="finance" className="text-xs lg:text-sm">Finance</TabsTrigger>
-                  <TabsTrigger value="consulting" className="text-xs lg:text-sm">Consulting</TabsTrigger>
+                  <TabsTrigger value="all" className="text-xs lg:text-sm">{t.services.all}</TabsTrigger>
+                  <TabsTrigger value="property" className="text-xs lg:text-sm">{t.services.property}</TabsTrigger>
+                  <TabsTrigger value="tech" className="text-xs lg:text-sm">{t.services.tech}</TabsTrigger>
+                  <TabsTrigger value="business" className="text-xs lg:text-sm">{t.services.business}</TabsTrigger>
+                  <TabsTrigger value="finance" className="text-xs lg:text-sm">{t.services.finance}</TabsTrigger>
+                  <TabsTrigger value="consulting" className="text-xs lg:text-sm">{t.services.consulting}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="all" className="mt-8">
@@ -468,14 +498,14 @@ export default function EnhancedHomePage() {
 
         {/* Testimonials / About */}
         {testimonials.length > 0 && (
-          <section id="about" className={`py-12 lg:py-16 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
+          <section id="about" className={`py-12 lg:py-16 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`} dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="container mx-auto">
               <div className="text-center max-w-3xl mx-auto mb-8 lg:mb-12">
                 <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  Trusted by Industry Leaders
+                  {t.about.title}
                 </h2>
                 <p className={`text-lg ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                  See what our clients say about working with GSC Capital Group
+                  {t.about.description}
                 </p>
               </div>
 
@@ -511,14 +541,14 @@ export default function EnhancedHomePage() {
         )}
 
         {/* Contact Section */}
-        <section id="contact" className={`py-12 lg:py-16 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+        <section id="contact" className={`py-12 lg:py-16 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-slate-800' : 'bg-white'}`} dir={isRTL ? 'rtl' : 'ltr'}>
           <div className="container mx-auto max-w-4xl">
             <div className="text-center mb-8 lg:mb-12">
               <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                Get in Touch
+                {t.contact.title}
               </h2>
               <p className={`text-lg ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                Ready to transform your business? Let's discuss how we can help
+                {t.contact.description}
               </p>
             </div>
 
@@ -529,8 +559,8 @@ export default function EnhancedHomePage() {
                     <Globe className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   </div>
                   <div>
-                    <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Global Presence</div>
-                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>New York · Dubai · Worldwide</div>
+                    <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t.contact.globalPresence}</div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t.contact.locations}</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -538,10 +568,10 @@ export default function EnhancedHomePage() {
                     <Mail className={`w-6 h-6 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
                   </div>
                   <div>
-                    <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Email</div>
+                    <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t.contact.email}</div>
                     <a 
                       href="mailto:info@gsccapitalgroup.com" 
-                      className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                      className={`text-sm ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} hover:underline transition-colors`}
                     >
                       info@gsccapitalgroup.com
                     </a>
@@ -552,7 +582,7 @@ export default function EnhancedHomePage() {
                     <Phone className={`w-6 h-6 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
                   </div>
                   <div>
-                    <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Phone</div>
+                    <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t.contact.phone}</div>
                     <a 
                       href="tel:+15551234567" 
                       className={`text-sm ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} hover:underline transition-colors`}
@@ -567,7 +597,7 @@ export default function EnhancedHomePage() {
                 <CardContent className="p-6">
                   <form onSubmit={handleContactSubmit} className="space-y-4">
                     <Input 
-                      placeholder="Your Name" 
+                      placeholder={t.contact.name} 
                       className="border-slate-200"
                       value={contactForm.name}
                       onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
@@ -575,27 +605,27 @@ export default function EnhancedHomePage() {
                     />
                     <Input 
                       type="email" 
-                      placeholder="Email Address" 
+                      placeholder={t.contact.email} 
                       className="border-slate-200"
                       value={contactForm.email}
                       onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
                       required
                     />
                     <Input 
-                      placeholder="Company" 
+                      placeholder={t.contact.company} 
                       className="border-slate-200"
                       value={contactForm.company}
                       onChange={(e) => setContactForm(prev => ({ ...prev, company: e.target.value }))}
                     />
                     <textarea 
-                      placeholder="Tell us about your needs"
+                      placeholder={t.contact.message}
                       className="w-full p-3 border border-slate-200 rounded-lg resize-none h-24"
                       value={contactForm.message}
                       onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
                       required
                     />
                     <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                      Send Message
+                      {t.contact.send}
                     </Button>
                   </form>
                 </CardContent>
@@ -620,12 +650,12 @@ export default function EnhancedHomePage() {
                   </div>
                 </div>
                 <p className="text-slate-400 text-sm">
-                  Global Strategy Catalyst Group - Empowering business excellence worldwide.
+                  {t.footer.description}
                 </p>
               </div>
               
               <div>
-                <h4 className="font-semibold mb-4">Companies</h4>
+                <h4 className="font-semibold mb-4">{t.footer.companies}</h4>
                 <ul className="space-y-2 text-sm text-slate-400">
                   {companies.map((company) => (
                     <li key={company.id}>
@@ -641,7 +671,7 @@ export default function EnhancedHomePage() {
               </div>
               
               <div>
-                <h4 className="font-semibold mb-4">Services</h4>
+                <h4 className="font-semibold mb-4">{t.footer.services}</h4>
                 <ul className="space-y-2 text-sm text-slate-400">
                   <li>
                     <button 
@@ -679,47 +709,31 @@ export default function EnhancedHomePage() {
               </div>
               
               <div>
-                <h4 className="font-semibold mb-4">Connect</h4>
+                <h4 className="font-semibold mb-4">{t.footer.quickLinks}</h4>
                 <ul className="space-y-2 text-sm text-slate-400">
                   <li>
                     <button 
                       onClick={() => scrollToSection('about')}
-                      className="hover:text-white transition-colors text-left"
+                      className={`hover:text-white transition-colors ${isRTL ? 'text-right' : 'text-left'}`}
                     >
-                      About Us
+                      {t.nav.about}
                     </button>
                   </li>
                   <li>
                     <button 
                       onClick={() => scrollToSection('contact')}
-                      className="hover:text-white transition-colors text-left"
+                      className={`hover:text-white transition-colors ${isRTL ? 'text-right' : 'text-left'}`}
                     >
-                      Careers
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      onClick={() => scrollToSection('contact')}
-                      className="hover:text-white transition-colors text-left"
-                    >
-                      Contact
+                      {t.footer.contact}
                     </button>
                   </li>
                   <li><a href="/admin/auth" className="hover:text-white transition-colors">Admin</a></li>
-                  <li>
-                    <button 
-                      onClick={() => scrollToSection('contact')}
-                      className="hover:text-white transition-colors text-left"
-                    >
-                      Privacy Policy
-                    </button>
-                  </li>
                 </ul>
               </div>
             </div>
             
             <div className="border-t border-slate-800 pt-8 text-center text-sm text-slate-400">
-              <p>© 2024 GSC Capital Group. All rights reserved. | www.gsccapitalgroup.com</p>
+              <p>© 2024 GSC Capital Group. {t.footer.allRightsReserved} | www.gsccapitalgroup.com</p>
             </div>
           </div>
         </footer>

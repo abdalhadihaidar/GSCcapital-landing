@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useAdminTranslations } from '@/hooks/use-admin-translations';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,7 @@ interface Testimonial {
 }
 
 export default function TestimonialsManagement() {
+  const { t } = useAdminTranslations();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
@@ -123,7 +125,7 @@ export default function TestimonialsManagement() {
       });
 
       if (response.ok) {
-        toast.success('Testimonial deleted successfully!');
+        toast.success(t.deleteSuccess);
         await fetchTestimonials();
         setDeleteDialogOpen(false);
         setTestimonialToDelete(null);
@@ -132,7 +134,7 @@ export default function TestimonialsManagement() {
       }
     } catch (error) {
       console.error('Error deleting testimonial:', error);
-      toast.error('Failed to delete testimonial. Please try again.');
+      toast.error(t.deleteError);
     } finally {
       setIsDeleting(null);
     }
@@ -164,13 +166,13 @@ export default function TestimonialsManagement() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deleteConfirm}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the testimonial.
+              {t.deleteMessage}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting !== null}>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isDeleting !== null}
@@ -179,10 +181,10 @@ export default function TestimonialsManagement() {
               {isDeleting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deleting...
+                  {t.deleting}
                 </>
               ) : (
-                'Delete'
+                t.delete
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -191,29 +193,29 @@ export default function TestimonialsManagement() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Testimonials</h1>
-          <p className="text-slate-600 dark:text-slate-400">Manage client testimonials and reviews</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t.testimonials}</h1>
+          <p className="text-slate-600 dark:text-slate-400">{t.testimonials} Management</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Testimonial
+              {t.add} {t.testimonials}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
-                {editingTestimonial ? 'Edit Testimonial' : 'Add New Testimonial'}
+                {editingTestimonial ? `${t.edit} ${t.testimonials}` : `${t.add} ${t.testimonials}`}
               </DialogTitle>
               <DialogDescription>
-                Create or update a client testimonial
+                {editingTestimonial ? t.update : t.create} {t.testimonials.toLowerCase()}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Client Name</Label>
+                  <Label htmlFor="name">{t.name}</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -222,7 +224,7 @@ export default function TestimonialsManagement() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="company">Company</Label>
+                  <Label htmlFor="company">{t.company}</Label>
                   <Input
                     id="company"
                     value={formData.company}
@@ -232,7 +234,7 @@ export default function TestimonialsManagement() {
               </div>
               
               <div>
-                <Label htmlFor="role">Role</Label>
+                <Label htmlFor="role">{t.role}</Label>
                 <Input
                   id="role"
                   value={formData.role}
@@ -241,7 +243,7 @@ export default function TestimonialsManagement() {
               </div>
 
               <div>
-                <Label htmlFor="content">Testimonial Content</Label>
+                <Label htmlFor="content">{t.content}</Label>
                 <Textarea
                   id="content"
                   value={formData.content}
@@ -253,7 +255,7 @@ export default function TestimonialsManagement() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="rating">Rating</Label>
+                  <Label htmlFor="rating">{t.rating}</Label>
                   <select
                     id="rating"
                     value={formData.rating}
@@ -266,7 +268,7 @@ export default function TestimonialsManagement() {
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="order">Order</Label>
+                  <Label htmlFor="order">{t.order}</Label>
                   <Input
                     id="order"
                     type="number"
@@ -283,16 +285,16 @@ export default function TestimonialsManagement() {
                   onClick={() => setIsDialogOpen(false)}
                   disabled={isLoading}
                 >
-                  Cancel
+                  {t.cancel}
                 </Button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {editingTestimonial ? 'Updating...' : 'Creating...'}
+                      {editingTestimonial ? t.updating : t.creating}
                     </>
                   ) : (
-                    `${editingTestimonial ? 'Update' : 'Create'} Testimonial`
+                    `${editingTestimonial ? t.update : t.create} ${t.testimonials}`
                   )}
                 </Button>
               </div>
@@ -311,8 +313,8 @@ export default function TestimonialsManagement() {
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <MessageSquare className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No testimonials yet</h3>
-                <p className="text-slate-600 dark:text-slate-400">Get started by creating your first testimonial.</p>
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">{t.noData}</h3>
+                <p className="text-slate-600 dark:text-slate-400">{t.add} {t.testimonials.toLowerCase()} to get started.</p>
               </div>
             </CardContent>
           </Card>

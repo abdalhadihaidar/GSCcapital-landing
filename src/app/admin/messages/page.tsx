@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { useAdminTranslations } from '@/hooks/use-admin-translations';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,7 @@ interface ContactMessage {
 }
 
 export default function MessagesManagement() {
+  const { t } = useAdminTranslations();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export default function MessagesManagement() {
       setMessages(data);
     } catch (error) {
       console.error('Error fetching messages:', error);
-      toast.error('Failed to load messages. Please try again.');
+      toast.error(t.saveError);
     } finally {
       setLoading(false);
     }
@@ -72,13 +74,13 @@ export default function MessagesManagement() {
             msg.id === messageId ? { ...msg, isRead: !isRead } : msg
           )
         );
-        toast.success(isRead ? 'Message marked as unread' : 'Message marked as read');
+        toast.success(isRead ? t.markAsUnread : t.markAsRead);
       } else {
         throw new Error('Failed to update message status');
       }
     } catch (error) {
       console.error('Error updating message status:', error);
-      toast.error('Failed to update message status. Please try again.');
+      toast.error(t.saveError);
     } finally {
       setUpdatingStatus(null);
     }
@@ -99,7 +101,7 @@ export default function MessagesManagement() {
       });
 
       if (response.ok) {
-        toast.success('Message deleted successfully!');
+        toast.success(t.deleteSuccess);
         await fetchMessages();
         setDeleteDialogOpen(false);
         setMessageToDelete(null);
@@ -108,7 +110,7 @@ export default function MessagesManagement() {
       }
     } catch (error) {
       console.error('Error deleting message:', error);
-      toast.error('Failed to delete message. Please try again.');
+      toast.error(t.deleteError);
     } finally {
       setIsDeleting(null);
     }
@@ -131,13 +133,13 @@ export default function MessagesManagement() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deleteConfirm}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the message.
+              {t.deleteMessage}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting !== null}>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isDeleting !== null}
@@ -146,10 +148,10 @@ export default function MessagesManagement() {
               {isDeleting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deleting...
+                  {t.deleting}
                 </>
               ) : (
-                'Delete'
+                t.delete
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -158,12 +160,12 @@ export default function MessagesManagement() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Contact Messages</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t.messages}</h1>
           <p className="text-slate-600 dark:text-slate-400">
-            Manage incoming contact messages 
+            {t.messages} Management
             {unreadCount > 0 && (
               <Badge className="ml-2 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                {unreadCount} unread
+                {unreadCount} {t.unread}
               </Badge>
             )}
           </p>
@@ -172,7 +174,7 @@ export default function MessagesManagement() {
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Loading...
+              {t.loading}
             </>
           ) : (
             'Refresh'
@@ -190,8 +192,8 @@ export default function MessagesManagement() {
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <Mail className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No messages yet</h3>
-                <p className="text-slate-600 dark:text-slate-400">Contact messages will appear here when visitors submit the form.</p>
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">{t.noData}</h3>
+                <p className="text-slate-600 dark:text-slate-400">{t.messages.toLowerCase()} will appear here when visitors submit the form.</p>
               </div>
             </CardContent>
           </Card>

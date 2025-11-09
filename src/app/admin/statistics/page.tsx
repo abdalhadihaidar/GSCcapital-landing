@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { optimizePreviewImage } from '@/lib/cloudinary';
+import { useAdminTranslations } from '@/hooks/use-admin-translations';
 
 interface Statistic {
   id: string;
@@ -54,6 +55,7 @@ const iconOptions = [
 ];
 
 export default function StatisticsManagement() {
+  const { t } = useAdminTranslations();
   const [statistics, setStatistics] = useState<Statistic[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingStatistic, setEditingStatistic] = useState<Statistic | null>(null);
@@ -127,14 +129,14 @@ export default function StatisticsManagement() {
       if (response.ok) {
         const data = await response.json();
         setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
-        toast.success('Image uploaded successfully!');
+        toast.success(t.uploadSuccess);
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to upload image');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to upload image. Please try again.');
+      toast.error(error instanceof Error ? error.message : t.uploadError);
     } finally {
       setUploadingImage(false);
     }
@@ -167,7 +169,7 @@ export default function StatisticsManagement() {
       });
 
       if (response.ok) {
-        toast.success('Statistic deleted successfully!');
+        toast.success(t.deleteSuccess);
         await fetchStatistics();
         setDeleteDialogOpen(false);
         setStatisticToDelete(null);
@@ -176,7 +178,7 @@ export default function StatisticsManagement() {
       }
     } catch (error) {
       console.error('Error deleting statistic:', error);
-      toast.error('Failed to delete statistic. Please try again.');
+      toast.error(t.deleteError);
     } finally {
       setIsDeleting(null);
     }
@@ -198,13 +200,13 @@ export default function StatisticsManagement() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deleteConfirm}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the statistic.
+              {t.deleteMessage}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting !== null}>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isDeleting !== null}
@@ -213,10 +215,10 @@ export default function StatisticsManagement() {
               {isDeleting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deleting...
+                  {t.deleting}
                 </>
               ) : (
-                'Delete'
+                t.delete
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -225,28 +227,28 @@ export default function StatisticsManagement() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Statistics</h1>
-          <p className="text-slate-600 dark:text-slate-400">Manage website statistics and metrics</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t.statistics}</h1>
+          <p className="text-slate-600 dark:text-slate-400">{t.statistics} Management</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Statistic
+              {t.add} {t.statistics}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingStatistic ? 'Edit Statistic' : 'Add New Statistic'}
+                {editingStatistic ? `${t.edit} ${t.statistics}` : `${t.add} ${t.statistics}`}
               </DialogTitle>
               <DialogDescription>
-                Create or update a website statistic
+                {editingStatistic ? t.update : t.create} {t.statistics.toLowerCase()}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="label">Label</Label>
+                <Label htmlFor="label">{t.label}</Label>
                 <Input
                   id="label"
                   value={formData.label}
@@ -256,7 +258,7 @@ export default function StatisticsManagement() {
               </div>
               
               <div>
-                <Label htmlFor="value">Value</Label>
+                <Label htmlFor="value">{t.value}</Label>
                 <Input
                   id="value"
                   value={formData.value}
@@ -266,7 +268,7 @@ export default function StatisticsManagement() {
               </div>
 
               <div>
-                <Label htmlFor="image">Image (Optional - will override icon)</Label>
+                <Label htmlFor="image">{t.image} ({t.uploadImage})</Label>
                 <Input
                   id="image"
                   type="file"
@@ -276,7 +278,7 @@ export default function StatisticsManagement() {
                 />
                 {formData.imageUrl && (
                   <div className="mt-2">
-                    <Label className="text-sm font-medium mb-2 block">Preview</Label>
+                    <Label className="text-sm font-medium mb-2 block">{t.preview}</Label>
                     <div className="relative w-32 h-32 border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
                       <img 
                         src={optimizePreviewImage(formData.imageUrl)} 
@@ -295,16 +297,16 @@ export default function StatisticsManagement() {
                       onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
                       className="mt-2"
                     >
-                      Remove Image
+                      {t.removeImage}
                     </Button>
                   </div>
                 )}
-                {uploadingImage && <p className="text-sm text-slate-500 mt-1">Uploading...</p>}
+                {uploadingImage && <p className="text-sm text-slate-500 mt-1">{t.uploading}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="icon">Icon</Label>
+                  <Label htmlFor="icon">{t.icon}</Label>
                   <Select value={formData.icon} onValueChange={(value) => setFormData(prev => ({ ...prev, icon: value }))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -319,7 +321,7 @@ export default function StatisticsManagement() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="order">Order</Label>
+                  <Label htmlFor="order">{t.order}</Label>
                   <Input
                     id="order"
                     type="number"
@@ -336,16 +338,16 @@ export default function StatisticsManagement() {
                   onClick={() => setIsDialogOpen(false)}
                   disabled={isLoading}
                 >
-                  Cancel
+                  {t.cancel}
                 </Button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {editingStatistic ? 'Updating...' : 'Creating...'}
+                      {editingStatistic ? t.updating : t.creating}
                     </>
                   ) : (
-                    `${editingStatistic ? 'Update' : 'Create'} Statistic`
+                    `${editingStatistic ? t.update : t.create} ${t.statistics}`
                   )}
                 </Button>
               </div>
@@ -364,8 +366,8 @@ export default function StatisticsManagement() {
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <BarChart3 className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No statistics yet</h3>
-                <p className="text-slate-600 dark:text-slate-400">Get started by creating your first statistic.</p>
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">{t.noData}</h3>
+                <p className="text-slate-600 dark:text-slate-400">{t.add} {t.statistics.toLowerCase()} to get started.</p>
               </div>
             </CardContent>
           </Card>
