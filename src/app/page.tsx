@@ -341,7 +341,7 @@ export default function EnhancedHomePage() {
                             loading="lazy"
                           />
                         ) : (
-                          <IconComponent className="w-6 h-6 text-white" />
+                        <IconComponent className="w-6 h-6 text-white" />
                         )}
                       </div>
                       <div className={`text-2xl lg:text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</div>

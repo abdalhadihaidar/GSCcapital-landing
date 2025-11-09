@@ -5,9 +5,11 @@ import { Server } from 'socket.io';
 import next from 'next';
 
 const dev = process.env.NODE_ENV !== 'production';
-// Hostinger provides PORT via environment variable, default to 3000 for local dev
+// Render and other platforms provide PORT via environment variable
+// Default to 3000 for local dev, but always use PORT if available
 const currentPort = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
-const hostname = process.env.HOSTNAME || '0.0.0.0';
+// Always bind to 0.0.0.0 to accept connections from outside the container
+const hostname = '0.0.0.0';
 
 // Custom server with Socket.IO integration
 async function createCustomServer() {
@@ -21,6 +23,7 @@ async function createCustomServer() {
     });
 
     await nextApp.prepare();
+    console.log('> Next.js app prepared successfully');
     const handle = nextApp.getRequestHandler();
 
     // Create HTTP server that will handle both Next.js and Socket.IO
@@ -28,6 +31,10 @@ async function createCustomServer() {
       // Skip socket.io requests from Next.js handler
       if (req.url?.startsWith('/api/socketio')) {
         return;
+      }
+      // Log requests for debugging
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`${req.method} ${req.url}`);
       }
       handle(req, res);
     });
@@ -44,9 +51,24 @@ async function createCustomServer() {
     setupSocket(io);
 
     // Start the server
+    // Use callback to ensure server is actually listening before logging
     server.listen(currentPort, hostname, () => {
-      console.log(`> Ready on http://${hostname}:${currentPort}`);
-      console.log(`> Socket.IO server running at ws://${hostname}:${currentPort}/api/socketio`);
+      const address = server.address();
+      const actualPort = typeof address === 'object' && address ? address.port : currentPort;
+      console.log(`> Server listening on port ${actualPort}`);
+      console.log(`> Ready on http://${hostname}:${actualPort}`);
+      console.log(`> Socket.IO server running at ws://${hostname}:${actualPort}/api/socketio`);
+    });
+    
+    // Handle errors
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`Port ${currentPort} is already in use`);
+        process.exit(1);
+      } else {
+        console.error('Server error:', err);
+        process.exit(1);
+      }
     });
 
     // Graceful shutdown
