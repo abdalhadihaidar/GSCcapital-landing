@@ -22,7 +22,10 @@ export const metadata: Metadata = {
   authors: [{ name: "GSC Capital Group" }],
   icons: {
     icon: [
-      { url: "/logo.png", type: "image/png", sizes: "any" },
+      { url: "/logo.png", type: "image/png", sizes: "32x32" },
+      { url: "/logo.png", type: "image/png", sizes: "16x16" },
+      { url: "/logo.png", type: "image/png", sizes: "96x96" },
+      { url: "/logo.png", type: "image/png", sizes: "192x192" },
     ],
     apple: [
       { url: "/logo.png", type: "image/png", sizes: "180x180" },
