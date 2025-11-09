@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Building2, BarChart3, MessageSquare, Users, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -12,6 +13,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     companies: 0,
     statistics: 0,
@@ -153,7 +155,10 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors">
+              <div 
+                className="p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                onClick={() => router.push('/admin/companies')}
+              >
                 <div className="flex items-center space-x-3">
                   <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   <div>
@@ -162,7 +167,10 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </div>
-              <div className="p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors">
+              <div 
+                className="p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                onClick={() => router.push('/admin/testimonials')}
+              >
                 <div className="flex items-center space-x-3">
                   <MessageSquare className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   <div>
@@ -171,7 +179,10 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </div>
-              <div className="p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors">
+              <div 
+                className="p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                onClick={() => router.push('/admin/statistics')}
+              >
                 <div className="flex items-center space-x-3">
                   <BarChart3 className="w-5 h-5 text-green-600 dark:text-green-400" />
                   <div>
