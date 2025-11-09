@@ -49,6 +49,33 @@ async function createCustomServer() {
       console.log(`> Socket.IO server running at ws://${hostname}:${currentPort}/api/socketio`);
     });
 
+    // Graceful shutdown
+    const gracefulShutdown = async (signal: string) => {
+      console.log(`\n${signal} received. Starting graceful shutdown...`);
+      
+      server.close(() => {
+        console.log('HTTP server closed');
+      });
+
+      io.close(() => {
+        console.log('Socket.IO server closed');
+      });
+
+      // Disconnect Prisma
+      try {
+        const { db } = await import('@/lib/db');
+        await db.$disconnect();
+        console.log('Database connections closed');
+      } catch (err) {
+        console.error('Error disconnecting database:', err);
+      }
+
+      process.exit(0);
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
   } catch (err) {
     console.error('Server startup error:', err);
     if (err instanceof Error) {
